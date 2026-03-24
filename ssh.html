@@ -317,20 +317,22 @@
             
             const json = await response.json();
 
-            if (json.status === 'sukses') {
-                showScreen('screen-success', 'Trial SSH Berhasil');
-                
-                const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
-                const u = json.akun.username;
-                const p = json.akun.password;
-                
-                document.getElementById('res-user').innerText = u;
-                document.getElementById('res-pass').innerText = p;
-                document.getElementById('res-host').innerText = domain;
-                document.getElementById('res-exp').innerText = json.akun.exp;
+            // ... di dalam fungsi prosesTrial() ...
+if (json.status === 'sukses') {
+    showScreen('screen-success', 'Detail Trial SSH');
+    
+    // Ambil data hostname dari VPS atau gunakan domain default Mas
+    const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
+    const u = json.akun.username;
+    const p = json.akun.password;
+    
+    document.getElementById('res-user').innerText = u;
+    document.getElementById('res-pass').innerText = p;
+    document.getElementById('res-host').innerText = domain;
+    document.getElementById('res-exp').innerText = json.akun.exp || "15 Menit";
 
-                document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
-                document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
+    document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
+    document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
                         } else {
                 // Munculkan alasan asli dari VPS ke layar!
                 alert("Info dari VPS: " + (json.alasan || json.error || "Gagal membuat trial."));
