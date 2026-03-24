@@ -1,25 +1,25 @@
 export default async function handler(req, res) {
-    const orderId = req.query.order_id;
-    const redisUrl = process.env.masdvpnstore_REDIS_URL;
+    const { order_id } = req.query;
+    const kvUrl = process.env.KV_REST_API_URL;
+    const kvToken = process.env.KV_REST_API_TOKEN;
 
-    if (!redisUrl) return res.status(500).json({ error: 'Config Missing' });
+    if (!order_id) return res.status(400).json({ error: 'Order ID missing' });
 
     try {
-        // Mengambil data dari Redis Labs
-        const restUrl = redisUrl.replace('redis://', 'https://').split('@')[1];
-        const [host, token] = restUrl.split(':');
-
-        const response = await fetch(`https://${restUrl}/get/${orderId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`${kvUrl}/GET/${order_id}`, {
+            headers: { 'Authorization': `Bearer ${kvToken}` }
         });
         const data = await response.json();
 
-        if (data.result) {
-            return res.status(200).json({ status: 'sukses', akun: JSON.parse(data.result) });
-        } else {
-            return res.status(200).json({ status: 'menunggu' });
+        // RedisLabs mengembalikan data dalam field .result
+        if (data && data.result) {
+            return res.status(200).json({ 
+                status: 'sukses', 
+                akun: JSON.parse(data.result) 
+            });
         }
-    } catch (error) {
-        return res.status(500).json({ error: 'Gagal' });
+        return res.status(200).json({ status: 'menunggu' });
+    } catch (e) {
+        return res.status(500).json({ error: 'Gagal mengambil data' });
     }
 }
