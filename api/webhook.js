@@ -21,7 +21,7 @@ export default async function handler(req, res) {
             };
 
             try {
-                const responseVPS = await fetch('http://167.172.73.230:81/vps/sshvpn', {
+                const responseVPS = await fetch('http://167.172.73.230/vps/sshvpn', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
