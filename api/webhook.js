@@ -96,8 +96,13 @@ export default async function handler(req, res) {
                     fetchOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.POTATO_API_KEY}` },
-                        body: JSON.stringify({ expired: durasi, kuota: 300, limitip: 2, username: username, uuidv2: buatUUID() })
-                    };
+                        body: JSON.stringify({
+                            expired: durasi,
+                            kuota: 300, // Asumsi 0 adalah unlimited
+                            limitip: 2,
+                            username: username,
+                            uuidv2: crypto.randomUUID() // Buat UUID otomatis
+                        })
                 } else if (serverDipilih === 'IDTECH') {
                     vpsUrl = 'https://www.agung-store.my.id/api/addvless'; // Asumsi Agung API
                     fetchOptions = {
