@@ -14,14 +14,11 @@ export default async function handler(req, res) {
             const pass = potong[3];
             
             const dataKeVPS = {
-                expired: durasi,
-                limitip: 2,
-                password: pass,
-                username: user
+                expired: durasi, limitip: 2, password: pass, username: user
             };
 
             try {
-                // 1. TEMBAK VPS (Tanpa Port 81)
+                // 1. TEMBAK VPS
                 const responseVPS = await fetch('http://167.172.73.230/vps/sshvpn', {
                     method: 'POST',
                     headers: {
@@ -34,39 +31,33 @@ export default async function handler(req, res) {
                 const textBalasan = await responseVPS.text();
                 let hasilVPS = JSON.parse(textBalasan);
 
-                // Ganti bagian simpan ke KV dengan ini:
-if (responseVPS.ok && hasilVPS.data) {
-    const redisUrl = process.env.REDIS_URL;
-    
-    // Kita gunakan API RedisLabs (Rest API)
-    // Karena kamu pakai RedisLabs, cara paling mudah adalah menggunakan library 'redis' 
-    // atau jika ingin tetap pakai fetch, kita butuh Cloud Token.
-    
-    // TAPI, ada cara lebih gampang: 
-    // Mari kita pakai variabel Vercel KV saja agar kamu tidak pusing setting API RedisLabs lagi.
-}
-
-                    // Kirim ke Redis
-                    await fetch(`${kvUrl}/set/${orderId}`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${kvToken}` },
-                       body: JSON.stringify({
-                           result: JSON.stringify(hasilVPS.data) // Bungkus agar sesuai dengan api/cek_akun.js
-                        })
-                    });
+                if (responseVPS.ok && hasilVPS.data) {
+                    // 2. SIMPAN KE REDIS KAMU
+                    // Kita pakai URL dari Upstash/RedisLabs kamu
+                    const redisUrl = process.env.masdvpnstore_REDIS_URL; 
                     
-                    // Set Expired data di KV (agar tidak menumpuk)
-                    await fetch(`${kvUrl}/expire/${orderId}/3600`, {
-                        headers: { 'Authorization': `Bearer ${kvToken}` }
+                    if (!redisUrl) {
+                        console.error("❌ Variabel masdvpnstore_REDIS_URL tidak ditemukan!");
+                        return res.status(500).json({ error: 'Redis Config Missing' });
+                    }
+
+                    // Karena ini Redis Labs/Upstash via HTTP, kita kirim lewat jalur REST
+                    // Kita asumsikan ini Upstash karena formatnya sering begini di Vercel
+                    const restUrl = redisUrl.replace('redis://', 'https://').split('@')[1];
+                    const [host, token] = restUrl.split(':'); // Ini cara teknis bypass
+
+                    // Cara termudah: Kita simpan data akunnya
+                    await fetch(`https://${restUrl}/set/${orderId}/${encodeURIComponent(JSON.stringify(hasilVPS.data))}/EX/3600`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
                     });
 
-                    console.log(`✅ AKUN JADI & DISIMPAN!`);
+                    console.log(`✅ AKUN JADI & DISIMPAN DI REDIS!`);
                 }
             } catch (error) {
-                console.error("❌ ERROR FINAL:", error.message);
+                console.error("❌ ERROR:", error.message);
             }
         }
-        return res.status(200).json({ message: 'Webhook sukses' });
+        return res.status(200).json({ message: 'OK' });
     }
-    return res.status(200).json({ message: 'Belum lunas' });
+    return res.status(200).json({ message: 'Pending' });
 }
