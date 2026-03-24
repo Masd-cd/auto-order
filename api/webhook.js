@@ -34,21 +34,23 @@ export default async function handler(req, res) {
                 const textBalasan = await responseVPS.text();
                 let hasilVPS = JSON.parse(textBalasan);
 
-                if (responseVPS.ok && hasilVPS.data) {
-                    // 2. SIMPAN KE VERCEL KV (Gunakan KV_URL bawaan Vercel)
-                    const kvUrl = process.env.KV_REST_API_URL;
-                    const kvToken = process.env.KV_REST_API_TOKEN;
-                    
-                    if (!kvUrl || !kvToken) {
-                        console.error("❌ KV DATABASE BELUM TERSAMBUNG!");
-                        return res.status(500).json({ error: 'KV Config Missing' });
-                    }
+                // Ganti bagian simpan ke KV dengan ini:
+if (responseVPS.ok && hasilVPS.data) {
+    const redisUrl = process.env.REDIS_URL;
+    
+    // Kita gunakan API RedisLabs (Rest API)
+    // Karena kamu pakai RedisLabs, cara paling mudah adalah menggunakan library 'redis' 
+    // atau jika ingin tetap pakai fetch, kita butuh Cloud Token.
+    
+    // TAPI, ada cara lebih gampang: 
+    // Mari kita pakai variabel Vercel KV saja agar kamu tidak pusing setting API RedisLabs lagi.
+}
 
                     // Kirim ke Redis
                     await fetch(`${kvUrl}/set/${orderId}`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${kvToken}` },
-                        body: JSON.stringify({
+                       body: JSON.stringify({
                            result: JSON.stringify(hasilVPS.data) // Bungkus agar sesuai dengan api/cek_akun.js
                         })
                     });
