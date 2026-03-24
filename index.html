@@ -3,103 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MasD VPNStore | Premium Server</title>
+    <title>MasD VPNStore | Singapore</title>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        .produk { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        h1 { color: #38bdf8; }
+        h2 { margin-top: 0; color: #10b981; }
         
-        /* Tampilan Produk */
-        .kotak-produk { background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 12px; display: inline-block; margin: 10px; width: 250px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .kotak-produk h2 { color: #38bdf8; margin-top: 0; }
-        .harga { font-size: 24px; font-weight: bold; margin: 15px 0; color: #10b981; }
-        button { background: #3b82f6; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        /* Gaya Input */
+        input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 15px; outline: none; }
+        input:focus { border-color: #38bdf8; }
+        
+        button { background: #3b82f6; color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 95%; font-size: 16px; margin-top: 10px; }
         button:hover { background: #2563eb; }
 
-        /* Tampilan Akun Sukses */
-        #kotak-akun { background: #1e293b; border: 1px solid #10b981; padding: 20px; border-radius: 8px; display: inline-block; text-align: left; margin-top: 20px; display: none; width: 300px;}
-        .loading { color: #f59e0b; font-size: 16px; margin-top: 20px; font-weight: bold; animation: blink 1.5s infinite;}
-        .label { color: #94a3b8; display: inline-block; width: 90px;}
-        .value { color: #38bdf8; font-weight: bold; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        /* Hasil Akun */
+        #halaman-sukses { display: none; padding: 20px; background: #1e293b; border-radius: 15px; border: 2px solid #10b981; }
+        .detail-akun { text-align: left; background: #0f172a; padding: 15px; border-radius: 8px; font-family: monospace; margin-top: 15px; }
+        .label { color: #94a3b8; }
+        .val { color: #38bdf8; font-weight: bold; }
+        .loading { color: #f59e0b; font-weight: bold; animation: blink 1.5s infinite; margin: 20px 0; }
+        @keyframes blink { 50% { opacity: 0.4; } }
     </style>
 </head>
 <body>
-    
-    <div id="halaman-produk">
-        <h1>⚡ MasD VPNStore</h1>
-        <p>Server: Singapore (Premium SSH)</p>
-        
-        <div class="kotak-produk">
-            <h2>SSH 15 Hari</h2>
-            <div class="harga">Rp 5.000</div>
-            <button onclick="beli('5000', '15')">Beli via QRIS</button>
+
+    <div class="container">
+        <div id="halaman-beli">
+            <h1>⚡ MasD VPNStore</h1>
+            <p>Server: Singapore (Premium SSH)</p>
+            
+            <div class="produk">
+                <h2>Premium SSH 15 Hari</h2>
+                <p>Harga: Rp 5.000</p>
+                <input type="text" id="user15" placeholder="Ketik Username Bebas">
+                <input type="text" id="pass15" placeholder="Ketik Password Bebas">
+                <button onclick="prosesBeli('5000', '15', 'user15', 'pass15')">BELI VIA QRIS (15 HARI)</button>
+            </div>
+
+            <div class="produk">
+                <h2>Premium SSH 30 Hari</h2>
+                <p>Harga: Rp 10.000</p>
+                <input type="text" id="user30" placeholder="Ketik Username Bebas">
+                <input type="text" id="pass30" placeholder="Ketik Password Bebas">
+                <button onclick="prosesBeli('10000', '30', 'user30', 'pass30')">BELI VIA QRIS (30 HARI)</button>
+            </div>
         </div>
 
-        <div class="kotak-produk">
-            <h2>SSH 30 Hari</h2>
-            <div class="harga">Rp 10.000</div>
-            <button onclick="beli('10000', '30')">Beli via QRIS</button>
-        </div>
-    </div>
-
-    <div id="halaman-sukses" style="display: none;">
-        <h2>Sedang Memproses... ⏳</h2>
-        <p id="teks-tunggu" class="loading">Silakan selesaikan pembayaran di halaman Pakasir. <br>Halaman ini akan otomatis menampilkan detail akun jika sudah lunas.</p>
-
-        <div id="kotak-akun">
-            <h2 style="color: #10b981; margin-top: 0; text-align: center;">✅ Akun Berhasil Dibuat</h2>
-            <p><span class="label">Username</span>: <span class="value" id="res-user"></span></p>
-            <p><span class="label">Password</span>: <span class="value" id="res-pass"></span></p>
-            <p><span class="label">Host/IP</span>: <span class="value" id="res-host"></span></p>
-            <p><span class="label">Expired</span>: <span class="value" id="res-exp"></span></p>
-            <p><span class="label">Port SSH</span>: <span class="value">80 (WS), 443 (SSL)</span></p>
-            <br>
-            <button onclick="location.reload()" style="background: #10b981;">Beli Lagi</button>
+        <div id="halaman-sukses">
+            <h2>PEMBAYARAN TERDETEKSI! ✅</h2>
+            <p id="status-tunggu" class="loading">Sistem sedang membuatkan akun Anda... <br>Mohon jangan tutup halaman ini.</p>
+            
+            <div id="box-hasil" style="display: none;">
+                <div class="detail-akun">
+                    <p><span class="label">Username :</span> <span class="val" id="res-user"></span></p>
+                    <p><span class="label">Password :</span> <span class="val" id="res-pass"></span></p>
+                    <p><span class="label">Host/IP  :</span> <span class="val" id="res-host"></span></p>
+                    <p><span class="label">Expired  :</span> <span class="val" id="res-exp"></span></p>
+                    <p><span class="label">Port SSH :</span> <span class="val">80, 443</span></p>
+                </div>
+                <br>
+                <button onclick="window.location.reload()" style="background: #10b981;">BUAT AKUN LAGI</button>
+            </div>
         </div>
     </div>
 
     <script>
-        function beli(nominal, durasi) {
-            const slug = "masd"; 
-            const orderId = `SSH-${durasi}-${Date.now()}`; 
-            
-            // 1. BUKA PAKASIR DI TAB BARU
+        async function prosesBeli(nominal, durasi, idUser, idPass) {
+            const user = document.getElementById(idUser).value.trim();
+            const pass = document.getElementById(idPass).value.trim();
+
+            if (!user || !pass) {
+                alert("Wajib isi Username dan Password!");
+                return;
+            }
+
+            const slug = "masd";
+            // Format Order ID: SSH-DURASI-USER-PASS-TIME
+            const orderId = `SSH-${durasi}-${user}-${pass}-${Date.now()}`;
+
+            // Buka QRIS Pakasir di Tab Baru
             window.open(`https://app.pakasir.com/pay/${slug}/${nominal}?order_id=${orderId}&qris_only=1`, '_blank');
-            
-            // 2. GANTI TAMPILAN WEB KE MODE LOADING
-            document.getElementById('halaman-produk').style.display = 'none';
+
+            // Ganti tampilan ke mode menunggu
+            document.getElementById('halaman-beli').style.display = 'none';
             document.getElementById('halaman-sukses').style.display = 'block';
 
-            // 3. MULAI MENGECEK DATABASE (Setiap 3 Detik)
-            let percobaan = 0;
-            const intervalCek = setInterval(async () => {
-                percobaan++;
+            // Mulai cek database Vercel KV setiap 3 detik
+            let cek = setInterval(async () => {
                 try {
-                    const req = await fetch(`/api/cek_akun?order_id=${orderId}`);
-                    const res = await req.json();
+                    const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
+                    const json = await response.json();
 
-                    // Jika akun sudah muncul di database
-                    if (res.status === 'sukses') {
-                        clearInterval(intervalCek); // Hentikan pengecekan
-                        document.getElementById('teks-tunggu').style.display = 'none';
-                        document.getElementById('kotak-akun').style.display = 'block';
+                    if (json.status === 'sukses') {
+                        clearInterval(cek);
+                        document.getElementById('status-tunggu').style.display = 'none';
+                        document.getElementById('box-hasil').style.display = 'block';
                         
-                        // Tampilkan data ke layar
-                        document.getElementById('res-user').innerText = res.akun.username;
-                        document.getElementById('res-pass').innerText = res.akun.password;
-                        document.getElementById('res-host').innerText = res.akun.hostname || "167.172.73.230";
-                        document.getElementById('res-exp').innerText = res.akun.exp;
-                    } 
-                    
-                    // Batas maksimal cek (sekitar 15 menit jika dia lama bayarnya)
-                    if (percobaan > 300) {
-                        clearInterval(intervalCek);
-                        document.getElementById('teks-tunggu').innerText = "Waktu tunggu habis. Jika sudah bayar, silakan hubungi Admin.";
-                        document.getElementById('teks-tunggu').style.color = "red";
+                        document.getElementById('res-user').innerText = json.akun.username;
+                        document.getElementById('res-pass').innerText = json.akun.password;
+                        document.getElementById('res-host').innerText = json.akun.hostname || "167.172.73.230";
+                        document.getElementById('res-exp').innerText = json.akun.exp;
                     }
-                } catch (e) {
-                    console.log("Mengecek...");
-                }
-            }, 3000); // 3000 milidetik = 3 detik
+                } catch (e) { console.log("Menunggu lunas..."); }
+            }, 3000);
         }
     </script>
 </body>
