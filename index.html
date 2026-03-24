@@ -3,112 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MasD VPNStore | Singapore</title>
+    <title>MasD VPNStore | Premium Server</title>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 20px; }
-        .container { max-width: 500px; margin: auto; }
-        .produk { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        h1 { color: #38bdf8; }
-        h2 { margin-top: 0; color: #10b981; }
+        /* TEMA & WARNA DASAR */
+        :root { --bg-main: #0B0F19; --bg-card: #111827; --border: #1E293B; --primary: #3B82F6; --text-main: #F3F4F6; --text-muted: #9CA3AF; }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 480px; margin: 0 auto; min-height: 100vh; background-color: var(--bg-main); position: relative; }
         
-        /* Gaya Input */
-        input { width: 90%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 15px; outline: none; }
-        input:focus { border-color: #38bdf8; }
-        
-        button { background: #3b82f6; color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 95%; font-size: 16px; margin-top: 10px; }
-        button:hover { background: #2563eb; }
+        /* HEADER & NAVIGASI */
+        .header { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); }
+        .btn-back { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; display: none; margin-right: 15px; }
+        .header h2 { margin: 0; font-size: 18px; font-weight: 600; }
 
-        /* Hasil Akun */
-        #halaman-sukses { display: none; padding: 20px; background: #1e293b; border-radius: 15px; border: 2px solid #10b981; }
-        .detail-akun { text-align: left; background: #0f172a; padding: 15px; border-radius: 8px; font-family: monospace; margin-top: 15px; }
-        .label { color: #94a3b8; }
+        /* MANAJEMEN LAYAR (SCREENS) */
+        .screen { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* KARTU PILIHAN (CARDS) */
+        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .card:hover, .card:active { border-color: var(--primary); background-color: #1e293b; }
+        .card-icon { width: 40px; height: 40px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 20px; }
+        .card-content h3 { margin: 0 0 5px 0; font-size: 16px; color: var(--text-main); }
+        .card-content p { margin: 0; font-size: 13px; color: var(--text-muted); }
+        .badge { background: #059669; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: auto; }
+        .badge.disabled { background: #4B5563; }
+
+        /* FORM INPUT & TOMBOL */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-muted); }
+        input { width: 100%; box-sizing: border-box; padding: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: white; font-size: 15px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        .btn-main { background: var(--primary); color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 20px; }
+        .btn-main:hover { background: #2563eb; }
+        .btn-green { background: #10b981; }
+
+        /* TAMPILAN AKUN HASIL */
+        .detail-akun { background: var(--bg-card); padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #10b981; margin-top: 15px; }
+        .detail-akun p { margin: 8px 0; }
+        .label { color: var(--text-muted); display: inline-block; width: 90px;}
         .val { color: #38bdf8; font-weight: bold; }
-        .loading { color: #f59e0b; font-weight: bold; animation: blink 1.5s infinite; margin: 20px 0; }
-        @keyframes blink { 50% { opacity: 0.4; } }
+        .loading { color: #f59e0b; font-weight: bold; animation: blink 1.5s infinite; text-align: center; margin-top: 30px;}
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div id="halaman-beli">
-            <h1>⚡ MasD VPNStore</h1>
-            <p>Server: Singapore (Premium SSH)</p>
-            
-            <div class="produk">
-                <h2>Premium SSH 15 Hari</h2>
-                <p>Harga: Rp 5.000</p>
-                <input type="text" id="user15" placeholder="Ketik Username Bebas">
-                <input type="text" id="pass15" placeholder="Ketik Password Bebas">
-                <button onclick="prosesBeli('5000', '15', 'user15', 'pass15')">BELI VIA QRIS (15 HARI)</button>
-            </div>
+<div class="container">
+    <div class="header">
+        <button class="btn-back" id="btn-back" onclick="goBack()">← Kembali</button>
+        <h2 id="header-title">Pilih Protocol VPN</h2>
+    </div>
 
-            <div class="produk">
-                <h2>Premium SSH 30 Hari</h2>
-                <p>Harga: Rp 10.000</p>
-                <input type="text" id="user30" placeholder="Ketik Username Bebas">
-                <input type="text" id="pass30" placeholder="Ketik Password Bebas">
-                <button onclick="prosesBeli('10000', '30', 'user30', 'pass30')">BELI VIA QRIS (30 HARI)</button>
+    <div id="screen-protocol" class="screen active">
+        <div class="card" onclick="pilihProtokol('SSH')">
+            <div class="card-icon">🛡️</div>
+            <div class="card-content">
+                <h3>SSH</h3>
+                <p>Secure Shell tunneling dengan enkripsi tinggi</p>
+            </div>
+            <div class="badge">Aktif</div>
+        </div>
+        <div class="card" onclick="alert('Protokol VMess sedang dalam pengembangan!')">
+            <div class="card-icon">🪩</div>
+            <div class="card-content">
+                <h3>VMess</h3>
+                <p>V2Ray protocol dengan performa optimal</p>
+            </div>
+            <div class="badge disabled">Segera</div>
+        </div>
+    </div>
+
+    <div id="screen-server" class="screen">
+        <div class="card" onclick="pilihServer('SG-DO', 'SG Digital Ocean')">
+            <div class="card-icon">🇸🇬</div>
+            <div class="card-content">
+                <h3>SG Digital Ocean</h3>
+                <p>Singapura • 167.172.73.230</p>
+            </div>
+            <div class="badge">Online</div>
+        </div>
+        <div class="card" onclick="pilihServer('ID-TECH', 'ID Techno')">
+            <div class="card-icon">🇮🇩</div>
+            <div class="card-content">
+                <h3>ID Techno</h3>
+                <p>Indonesia • Premium BW</p>
+            </div>
+            <div class="badge">Online</div>
+        </div>
+    </div>
+
+    <div id="screen-type" class="screen">
+        <div class="card" onclick="pilihTipe('premium')">
+            <div class="card-icon">💎</div>
+            <div class="card-content">
+                <h3>Create Account</h3>
+                <p>Buat akun premium dengan durasi custom</p>
             </div>
         </div>
-
-        <div id="halaman-sukses">
-            <h2>PEMBAYARAN TERDETEKSI! ✅</h2>
-            <p id="status-tunggu" class="loading">Sistem sedang membuatkan akun Anda... <br>Mohon jangan tutup halaman ini.</p>
-            
-            <div id="box-hasil" style="display: none;">
-                <div class="detail-akun">
-                    <p><span class="label">Username :</span> <span class="val" id="res-user"></span></p>
-                    <p><span class="label">Password :</span> <span class="val" id="res-pass"></span></p>
-                    <p><span class="label">Host/IP  :</span> <span class="val" id="res-host"></span></p>
-                    <p><span class="label">Expired  :</span> <span class="val" id="res-exp"></span></p>
-                    <p><span class="label">Port SSH :</span> <span class="val">80, 443</span></p>
-                </div>
-                <br>
-                <button onclick="window.location.reload()" style="background: #10b981;">BUAT AKUN LAGI</button>
+        <div class="card" onclick="alert('Fitur Trial sedang dimatikan sementara.')">
+            <div class="card-icon">🎁</div>
+            <div class="card-content">
+                <h3>Trial Account</h3>
+                <p>Coba gratis tanpa memotong saldo</p>
             </div>
         </div>
     </div>
 
-    <script>
-        async function prosesBeli(nominal, durasi, idUser, idPass) {
-            const user = document.getElementById(idUser).value.trim();
-            const pass = document.getElementById(idPass).value.trim();
+    <div id="screen-duration" class="screen">
+        <div class="card" onclick="pilihDurasi('15', '5000')">
+            <div class="card-icon">⏱️</div>
+            <div class="card-content">
+                <h3>15 Hari</h3>
+                <p>Harga: Rp 5.000</p>
+            </div>
+        </div>
+        <div class="card" onclick="pilihDurasi('30', '10000')">
+            <div class="card-icon">⏳</div>
+            <div class="card-content">
+                <h3>30 Hari</h3>
+                <p>Harga: Rp 10.000</p>
+            </div>
+        </div>
+    </div>
 
-            if (!user || !pass) {
-                alert("Wajib isi Username dan Password!");
-                return;
-            }
+    <div id="screen-input" class="screen">
+        <p style="color: var(--text-muted); margin-top: 0;" id="ringkasan-pesanan">Ringkasan: -</p>
+        
+        <div class="form-group">
+            <label>Username Akun</label>
+            <input type="text" id="input-user" placeholder="Ketik username bebas">
+        </div>
+        <div class="form-group">
+            <label>Password Akun</label>
+            <input type="text" id="input-pass" placeholder="Ketik password bebas">
+        </div>
+        
+        <button class="btn-main" onclick="prosesCheckout()">BELI VIA QRIS</button>
+    </div>
 
-            const slug = "masd";
-            // Format Order ID: SSH-DURASI-USER-PASS-TIME
-            const orderId = `SSH-${durasi}-${user}-${pass}-${Date.now()}`;
+    <div id="screen-loading" class="screen">
+        <h2 style="text-align: center;">Menunggu Pembayaran ⏳</h2>
+        <p class="loading">Sistem sedang memproses transaksi Anda... <br>Halaman ini akan otomatis menampilkan detail akun jika sudah lunas.</p>
+    </div>
 
-            // Buka QRIS Pakasir di Tab Baru
-            window.open(`https://app.pakasir.com/pay/${slug}/${nominal}?order_id=${orderId}&qris_only=1`, '_blank');
+    <div id="screen-success" class="screen">
+        <h2 style="color: #10b981; text-align: center; margin-top: 0;">✅ AKUN BERHASIL DIBUAT</h2>
+        <div class="detail-akun">
+            <p><span class="label">Username</span>: <span class="val" id="res-user"></span></p>
+            <p><span class="label">Password</span>: <span class="val" id="res-pass"></span></p>
+            <p><span class="label">Host/IP</span>: <span class="val" id="res-host"></span></p>
+            <p><span class="label">Expired</span>: <span class="val" id="res-exp"></span></p>
+            <p><span class="label">Port SSH</span>: <span class="val">80, 443</span></p>
+            <p><span class="label">Protokol</span>: <span class="val" id="res-proto"></span></p>
+        </div>
+        <button class="btn-main btn-green" onclick="location.reload()">KEMBALI KE MENU UTAMA</button>
+    </div>
+</div>
 
-            // Ganti tampilan ke mode menunggu
-            document.getElementById('halaman-beli').style.display = 'none';
-            document.getElementById('halaman-sukses').style.display = 'block';
+<script>
+    // DATA PESANAN SEMENTARA
+    let order = { protocol: '', serverId: '', serverName: '', duration: '', price: '' };
+    
+    // HISTORY NAVIGASI (Untuk tombol Back)
+    let historyStack = ['screen-protocol'];
 
-            // Mulai cek database Vercel KV setiap 3 detik
-            let cek = setInterval(async () => {
-                try {
-                    const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
-                    const json = await response.json();
+    function showScreen(screenId, title) {
+        // Sembunyikan semua screen
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        // Tampilkan screen yang dituju
+        document.getElementById(screenId).classList.add('active');
+        
+        // Update Judul Header
+        document.getElementById('header-title').innerText = title;
 
-                    if (json.status === 'sukses') {
-                        clearInterval(cek);
-                        document.getElementById('status-tunggu').style.display = 'none';
-                        document.getElementById('box-hasil').style.display = 'block';
-                        
-                        document.getElementById('res-user').innerText = json.akun.username;
-                        document.getElementById('res-pass').innerText = json.akun.password;
-                        document.getElementById('res-host').innerText = json.akun.hostname || "167.172.73.230";
-                        document.getElementById('res-exp').innerText = json.akun.exp;
-                    }
-                } catch (e) { console.log("Menunggu lunas..."); }
-            }, 3000);
+        // Tampilkan/Sembunyikan tombol Back
+        const btnBack = document.getElementById('btn-back');
+        if(screenId === 'screen-protocol' || screenId === 'screen-loading' || screenId === 'screen-success') {
+            btnBack.style.display = 'none';
+        } else {
+            btnBack.style.display = 'block';
         }
-    </script>
+    }
+
+    function goBack() {
+        if(historyStack.length > 1) {
+            historyStack.pop(); // Buang halaman saat ini
+            const prevScreen = historyStack[historyStack.length - 1];
+            
+            // Setel ulang judul berdasarkan halaman sebelumnya
+            let title = "Pilih Protocol VPN";
+            if(prevScreen === 'screen-server') title = "Pilih Server";
+            if(prevScreen === 'screen-type') title = "Jenis Akun";
+            if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            
+            showScreen(prevScreen, title);
+        }
+    }
+
+    // FUNGSI-FUNGSI PEMILIHAN
+    function pilihProtokol(proto) {
+        order.protocol = proto;
+        historyStack.push('screen-server');
+        showScreen('screen-server', 'Pilih Server');
+    }
+
+    function pilihServer(id, name) {
+        order.serverId = id;
+        order.serverName = name;
+        historyStack.push('screen-type');
+        showScreen('screen-type', 'Jenis Akun');
+    }
+
+    function pilihTipe(tipe) {
+        if(tipe === 'premium') {
+            historyStack.push('screen-duration');
+            showScreen('screen-duration', 'Pilih Paket');
+        }
+    }
+
+    function pilihDurasi(durasi, harga) {
+        order.duration = durasi;
+        order.price = harga;
+        
+        // Update teks ringkasan
+        document.getElementById('ringkasan-pesanan').innerText = 
+            `Server: ${order.serverName} | ${order.duration} Hari | Rp ${parseInt(harga).toLocaleString('id-ID')}`;
+            
+        historyStack.push('screen-input');
+        showScreen('screen-input', 'Detail Akun');
+    }
+
+    // FUNGSI CHECKOUT FINAL
+    function prosesCheckout() {
+        const user = document.getElementById('input-user').value.trim();
+        const pass = document.getElementById('input-pass').value.trim();
+
+        if (!user || !pass) {
+            alert("Mohon lengkapi Username dan Password!");
+            return;
+        }
+
+        const slug = "masd";
+        // Order ID tetap seperti kemarin agar webhook.js yang sudah jalan tidak perlu diubah
+        const orderId = `SSH-${order.duration}-${user}-${pass}-${Date.now()}`;
+
+        // Buka Tab Pakasir
+        window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
+
+        // Pindah ke halaman loading
+        showScreen('screen-loading', 'Memproses');
+
+        // Mulai Pengecekan Database (Mencari kunci di Redis)
+        let cek = setInterval(async () => {
+            try {
+                const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
+                const json = await response.json();
+
+                if (json.status === 'sukses') {
+                    clearInterval(cek);
+                    showScreen('screen-success', 'Transaksi Sukses');
+                    
+                    document.getElementById('res-user').innerText = json.akun.username;
+                    document.getElementById('res-pass').innerText = json.akun.password;
+                    document.getElementById('res-host').innerText = json.akun.hostname || "167.172.73.230";
+                    document.getElementById('res-exp').innerText = json.akun.exp;
+                    document.getElementById('res-proto').innerText = order.protocol;
+                }
+            } catch (e) { console.log("Menunggu lunas..."); }
+        }, 3000);
+    }
+</script>
 </body>
 </html>
