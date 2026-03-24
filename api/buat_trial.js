@@ -1,29 +1,35 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Hanya menerima POST' });
-
-    const { serverId } = req.body;
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Hanya POST' });
 
     try {
-        // Tembak API Trial VPS SG
         const responseVPS = await fetch('http://167.172.73.230/vps/trialsshvpn', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.POTATO_API_KEY}`
             },
-            body: JSON.stringify({ timelimit: "15" }) // Set trial 15 menit
+            // Tambahkan limitip: 2 buat jaga-jaga VPS menolak karena tidak ada limit
+            body: JSON.stringify({ timelimit: "15", limitip: 2 }) 
         });
         
-        const hasilVPS = await responseVPS.json();
-
-        // Jika VPS merespon dengan data akun
-        if (responseVPS.ok && hasilVPS.data) {
-            return res.status(200).json({ status: 'sukses', akun: hasilVPS.data });
-        } else {
-            return res.status(400).json({ error: 'VPS menolak permintaan trial' });
+        // Ambil balasan mentah dari VPS
+        const textVPS = await responseVPS.text();
+        
+        try {
+            const hasilVPS = JSON.parse(textVPS);
+            if (responseVPS.ok && hasilVPS.data) {
+                return res.status(200).json({ status: 'sukses', akun: hasilVPS.data });
+            } else {
+                // Tampilkan alasan penolakan dari VPS
+                return res.status(400).json({ 
+                    status: 'gagal', 
+                    alasan: hasilVPS.meta?.message || "VPS menolak tanpa alasan jelas." 
+                });
+            }
+        } catch(e) {
+            return res.status(400).json({ status: 'gagal', alasan: "Respon VPS aneh: " + textVPS });
         }
     } catch (error) {
-        console.error("❌ Error API Trial:", error.message);
-        return res.status(500).json({ error: 'Gagal terhubung ke server' });
+        return res.status(500).json({ status: 'error', alasan: error.message });
     }
 }
