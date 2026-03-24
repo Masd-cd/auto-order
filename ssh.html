@@ -278,17 +278,21 @@
                     clearInterval(cek);
                     showScreen('screen-success', 'Informasi Akun SSH');
                     
-                    const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
-                    const u = json.akun.username;
-                    const p = json.akun.password;
+                                        // Baca format Potato ATAU Agung
+                    const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                    // Kalau VPS tidak membalas username, ambil dari teks yang diinput pembeli (u & p)
+                    const resUser = json.akun.username || json.akun.user || user;
+                    const resPass = json.akun.password || json.akun.pass || pass;
+                    // Baca exp atau expired, kalau kosong panggil order.duration
+                    const resExp = json.akun.exp || json.akun.expired || order.duration + " Hari";
                     
-                    document.getElementById('res-user').innerText = u;
-                    document.getElementById('res-pass').innerText = p;
+                    document.getElementById('res-user').innerText = resUser;
+                    document.getElementById('res-pass').innerText = resPass;
                     document.getElementById('res-host').innerText = domain;
-                    document.getElementById('res-exp').innerText = json.akun.exp;
+                    document.getElementById('res-exp').innerText = resExp;
 
-                    document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
-                    document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
+                    document.getElementById('fmt-ws').innerText = `${domain}:80@${resUser}:${resPass}`;
+                    document.getElementById('fmt-tls').innerText = `${domain}:443@${resUser}:${resPass}`;
                 }
             } catch (e) { console.log("Menunggu validasi QRIS..."); }
         }, 3000);
@@ -322,17 +326,20 @@ if (json.status === 'sukses') {
     showScreen('screen-success', 'Detail Trial SSH');
     
     // Ambil data hostname dari VPS atau gunakan domain default Mas
-    const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
-    const u = json.akun.username;
-    const p = json.akun.password;
-    
-    document.getElementById('res-user').innerText = u;
-    document.getElementById('res-pass').innerText = p;
-    document.getElementById('res-host').innerText = domain;
-    document.getElementById('res-exp').innerText = json.akun.exp || "15 Menit";
+                        // Baca format Potato ATAU Agung
+                                    // Baca format Potato ATAU Agung
+                const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                const u = json.akun.username || json.akun.user || "trial-auto";
+                const p = json.akun.password || json.akun.pass || "1";
+                const exp = json.akun.exp || json.akun.expired || "15 Menit";
+                
+                document.getElementById('res-user').innerText = u;
+                document.getElementById('res-pass').innerText = p;
+                document.getElementById('res-host').innerText = domain;
+                document.getElementById('res-exp').innerText = exp;
 
-    document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
-    document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
+                document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
+                document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
                         } else {
                 // Munculkan alasan asli dari VPS ke layar!
                 alert("Info dari VPS: " + (json.alasan || json.error || "Gagal membuat trial."));
