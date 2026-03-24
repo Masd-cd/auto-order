@@ -44,7 +44,7 @@ export default async function handler(req, res) {
                         'x-api-key': process.env.AGUNG_API_KEY || '899e75f3d792d75954e05db23c76103809e084ebc0788a57a05f9d9dbe656aad'
                     },
                     body: JSON.stringify({
-                        server: "WIJAYA", // Catatan: Ganti jika nama server di panelmu bukan WIJAYA
+                        server: "TECHNO", // Catatan: Ganti jika nama server di panelmu bukan WIJAYA
                         username: username,
                         password: password,
                         ipLimit: 2,
