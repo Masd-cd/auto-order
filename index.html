@@ -245,7 +245,7 @@
         if (!user || !pass) return alert("Username dan Password tidak boleh kosong!");
 
         const slug = "masd";
-        const orderId = `SSH-${order.duration}-${user}-${pass}-${Date.now()}`;
+        const orderId = `SSH-${order.serverid}-${user}-${pass}-${Date.now()}`;
         window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
         showScreen('screen-loading', 'Memproses Data');
 
