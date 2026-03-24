@@ -331,8 +331,9 @@
 
                 document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
                 document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
-            } else {
-                alert("Gagal membuat trial. Silakan coba lagi.");
+                        } else {
+                // Munculkan alasan asli dari VPS ke layar!
+                alert("Info dari VPS: " + (json.alasan || json.error || "Gagal membuat trial."));
                 goBack();
             }
         } catch (e) { 
