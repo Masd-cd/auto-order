@@ -190,7 +190,7 @@
                 const res = await fetch(`/api/cek_akun?order_id=${orderId}`);
                 const json = await res.json();
                 if (json.status === 'sukses') {
-                    clearInterval(cek); showScreen('screen-success', 'Informasi Akun VLESS');
+                    clearInterval(cek); showScreen('screen-success', 'Detail Akun VLESS');
                     const akun = json.akun;
                     document.getElementById('res-user').innerText = akun.username || user;
                     document.getElementById('res-host').innerText = akun.hostname || akun.host || "masdvpnstore.web.id";
@@ -208,7 +208,7 @@
             const res = await fetch('/api/buat_trial_vless', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ serverId: order.serverId })});
             const json = await res.json();
             if (json.status === 'sukses') {
-                showScreen('screen-success', 'Informasi Akun VLESS');
+                showScreen('screen-success', 'Detail Trial VLESS');
                 const akun = json.akun;
                 document.getElementById('res-user').innerText = akun.username || "trial-vless";
                 document.getElementById('res-host').innerText = akun.hostname || akun.host || "masdvpnstore.web.id";
