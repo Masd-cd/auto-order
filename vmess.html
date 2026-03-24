@@ -259,9 +259,14 @@
                 const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
                 const json = await response.json();
 
-                if (json.status === 'sukses') {
+                                if (json.status === 'sukses') {
                     clearInterval(cek);
+                    
+                    // KAMERA PENGINTAI DATA AGUNG
+                    alert("DATA MENTAH AGUNG: " + JSON.stringify(json.akun));
+                    
                     showScreen('screen-success', 'Informasi Akun VMess');
+
                     
                     const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
                     const resUser = json.akun.username || json.akun.user || user;
