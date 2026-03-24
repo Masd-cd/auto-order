@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasD VPNStore | Premium Tunneling</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; text-align: center; }
+        .header { margin-bottom: 40px; }
+        .header h1 { color: #2c3e50; }
+        .produk-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .kartu-produk { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 250px; }
+        .kartu-produk h2 { font-size: 20px; color: #34495e; margin-bottom: 10px; }
+        .harga { font-size: 24px; font-weight: bold; color: #e74c3c; margin-bottom: 20px; }
+        .btn-beli { background-color: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; width: 100%; }
+        .btn-beli:hover { background-color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>MasD VPNStore</h1>
+        <p>Layanan VPN Premium, Cepat, dan Otomatis!</p>
+    </div>
+
+    <div class="produk-container">
+        <div class="kartu-produk">
+            <h2>Akun Vmess 1 Bulan</h2>
+            <div class="harga">Rp 20.000</div>
+            <button class="btn-beli" onclick="prosesBeli(20000)">Beli via QRIS</button>
+        </div>
+
+        <div class="kartu-produk">
+            <h2>Akun Trojan 1 Bulan</h2>
+            <div class="harga">Rp 25.000</div>
+            <button class="btn-beli" onclick="prosesBeli(25000)">Beli via QRIS</button>
+        </div>
+    </div>
+
+    <script>
+    function prosesBeli(nominal) {
+        // Slug sudah disesuaikan dengan milikmu
+        const slugPakasir = "masd"; 
+        
+        // Membuat Order ID unik otomatis (Contoh: INV-1701234567890)
+        const orderId = "INV-" + Date.now(); 
+        
+        // URL otomatis ke Pakasir
+        const urlPembayaran = `https://app.pakasir.com/pay/${slugPakasir}/${nominal}?order_id=${orderId}&qris_only=1`;
+        
+        // Arahkan pembeli ke halaman pembayaran
+        window.location.href = urlPembayaran;
+    }
+</script>
+
+</body>
+</html>
