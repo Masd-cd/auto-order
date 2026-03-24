@@ -1,14 +1,21 @@
-import { createClient } from 'redis';
-import crypto from 'crypto'; // Fitur bawaan Node.js untuk membuat UUID acak
+const { createClient } = require('redis');
 
-export default async function handler(req, res) {
+// Fungsi manual pembuat UUID yang 100% aman di Vercel
+function buatUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+module.exports = async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
     const dataPakasir = req.body;
     if (dataPakasir.status === 'completed') {
         const orderId = dataPakasir.order_id;
         const potong = orderId.split('-'); 
-        const protokol = potong[0]; // Ini akan mendeteksi apakah SSH atau VMESS
+        const protokol = potong[0]; 
 
         const client = createClient({
             password: 'lCMErlPn1KgtvOb7VR5DEpP9WrLxATiT',
@@ -21,10 +28,10 @@ export default async function handler(req, res) {
             const serverDipilih = potong[1];
             const durasi = parseInt(potong[2]);
             const username = potong[3];
-            const password = potong[4]; // Hanya kepakai untuk SSH, VMess biasanya gak butuh
+            const password = potong[4]; 
 
             // ==========================================
-            // LOGIKA 1: JIKA YANG DIBELI ADALAH SSH
+            // LOGIKA 1: SSH
             // ==========================================
             if (protokol === 'SSH') {
                 if (serverDipilih === 'SGDO') {
@@ -50,7 +57,7 @@ export default async function handler(req, res) {
                 }
             } 
             // ==========================================
-            // LOGIKA 2: JIKA YANG DIBELI ADALAH VMESS
+            // LOGIKA 2: VMESS
             // ==========================================
             else if (protokol === 'VMESS') {
                 if (serverDipilih === 'SGDO') {
@@ -63,10 +70,10 @@ export default async function handler(req, res) {
                         },
                         body: JSON.stringify({
                             expired: durasi,
-                            kuota: 300, // Asumsi 0 adalah unlimited
+                            kuota: 300, 
                             limitip: 2,
                             username: username,
-                            uuidv2: crypto.randomUUID() // Buat UUID otomatis
+                            uuidv2: buatUUID()
                         })
                     };
                 } else if (serverDipilih === 'IDTECH') {
@@ -80,56 +87,58 @@ export default async function handler(req, res) {
                         body: JSON.stringify({
                             server: "MASDVPN",
                             username: username,
-                            quota: 300, // Aku set 0 untuk unlimited (sesuaikan jika harus ada angka)
+                            quota: 300, 
                             ipLimit: 2,
                             days: durasi
                         })
                     };
                 }
             }
-                        // ==========================================
+            // ==========================================
             // LOGIKA 3: VLESS
             // ==========================================
             else if (protokol === 'VLESS') {
                 if (serverDipilih === 'SGDO') {
-                    vpsUrl = 'http://167.172.73.230/vps/vlessall'; // Asumsi Potato API
+                    vpsUrl = 'http://167.172.73.230/vps/vlessall';
                     fetchOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.POTATO_API_KEY}` },
-                        body: JSON.stringify({
-                            expired: durasi,
-                            kuota: 300, // Asumsi 0 adalah unlimited
-                            limitip: 2,
-                            username: username,
-                            uuidv2: crypto.randomUUID() // Buat UUID otomatis
-                        })
+                        body: JSON.stringify({ expired: durasi, kuota: 300, limitip: 2, username: username, uuidv2: buatUUID() })
+                    };
                 } else if (serverDipilih === 'IDTECH') {
-                    vpsUrl = 'https://www.agung-store.my.id/api/addvless'; // Asumsi Agung API
+                    vpsUrl = 'https://www.agung-store.my.id/api/addvless';
                     fetchOptions = {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.AGUNG_API_KEY },
+                        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.AGUNG_API_KEY || '899e75f3d792d75954e05db23c76103809e084ebc0788a57a05f9d9dbe656aad' },
                         body: JSON.stringify({ server: "MASDVPN", username: username, quota: 300, ipLimit: 2, days: durasi })
                     };
                 }
             }
-            
 
             if (!vpsUrl) {
-                console.error("❌ URL VPS Kosong, Protokol/Server tidak dikenali:", protokol, serverDipilih);
+                console.error("❌ URL VPS Kosong");
                 return res.status(200).send('OK'); 
             }
 
-            // TEMBAK KE VPS DAN SIMPAN KE REDIS
             const resVPS = await fetch(vpsUrl, fetchOptions);
-            const hasilVPS = await resVPS.json();
-            let dataDisimpan = hasilVPS.data || hasilVPS;
+            const teksHasil = await resVPS.text(); 
+            
+            try {
+                const hasilVPS = JSON.parse(teksHasil);
+                let dataDisimpan = hasilVPS.data || hasilVPS;
 
-            if (resVPS.ok) {
-                await client.connect();
-                await client.set(orderId, JSON.stringify(dataDisimpan), { EX: 3600 });
-                await client.quit();
-                console.log(`✅ Akun Premium Aktif: ${protokol} - ${username} di Server ${serverDipilih}`);
+                if (resVPS.ok) {
+                    await client.connect();
+                    await client.set(orderId, JSON.stringify(dataDisimpan), { EX: 3600 });
+                    await client.quit();
+                    console.log(`✅ Sukses: ${protokol} - ${username}`);
+                } else {
+                    console.error("❌ VPS Menolak:", hasilVPS);
+                }
+            } catch(e) {
+                console.error("❌ Balasan VPS bukan JSON:", teksHasil);
             }
+
         } catch (err) {
             if (client.isOpen) await client.quit();
             console.error("❌ Gagal Webhook:", err.message);
@@ -137,4 +146,4 @@ export default async function handler(req, res) {
         return res.status(200).send('OK');
     }
     return res.status(200).send('Pending');
-}
+};
