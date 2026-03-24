@@ -4,69 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MasD VPNStore | Auto System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* TEMA EKSKLUSIF MASD VPNSTORE (CYBER-TECH) */
+        /* TEMA WARNA PURPLE MODERN (Adopsi dari Web Tools MasD) */
         :root { 
-            --bg-main: #0a0a0a; 
-            --bg-card: #171717; 
-            --border: #262626; 
-            --primary: #06b6d4; /* Cyan Accent */
-            --text-main: #f5f5f5; 
-            --text-muted: #a3a3a3; 
-            --bg-input: #000000; 
+            --bg-main: #11141d; /* Hitam keunguan tua */
+            --bg-card: #1c1f2e; /* Sedikit lebih terang */
+            --border: #2a2e42; /* Warna garis purple muted */
+            --primary: #a78bfa; /* Ungu Muda Neon */
+            --primary-dark: #8b5cf6; /* Ungu Lebih Tua */
+            --text-main: #f9fafb; 
+            --text-muted: #94a3b8; 
+            --bg-input: #0c0e14; 
         }
-        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; }
-        .container { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 20px;}
+
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 30px;}
         
-        /* HEADER NAVIGASI */
-        .header { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); background: #121212;}
-        .btn-back { background: var(--border); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; display: none; margin-right: 15px; }
-        .header h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: 0.5px;}
+        /* HEADER LOGO STORE (Baru) */
+        .store-logo { text-align: center; padding: 30px 20px 10px 20px; }
+        .store-logo h1 { margin: 0; font-size: 26px; font-weight: 800; color: white; letter-spacing: -1px;}
+        .store-logo h1 span { color: var(--primary); }
+        .store-logo p { margin: 5px 0 0 0; font-size: 14px; color: var(--text-muted); }
+
+        /* NAVIGASI HEADER (Saat di dalam menu) */
+        .header { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); background: #151824; border-radius: 12px 12px 0 0; margin: 0 10px;}
+        .btn-back { background: var(--border); border: none; color: white; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: none; margin-right: 15px; transition: 0.2s;}
+        .btn-back:hover { background: #3f4661; }
+        .header h2 { margin: 0; font-size: 17px; font-weight: 700; color: white; }
 
         /* MANAJEMEN LAYAR */
-        .screen { display: none; padding: 20px; animation: slideUp 0.3s ease; }
+        .screen { display: none; padding: 20px 15px; animation: slideUp 0.3s ease; }
         .screen.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* KARTU MENU */
-        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; transition: all 0.2s; position: relative; overflow: hidden;}
-        .card:hover, .card:active { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);}
-        .card-icon { width: 45px; height: 45px; background: #000; border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 22px; }
-        .card-content h3 { margin: 0 0 4px 0; font-size: 16px; color: white; }
-        .card-content p { margin: 0; font-size: 13px; color: var(--text-muted); }
-        .badge { background: rgba(6, 182, 212, 0.2); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-left: auto; border: 1px solid var(--primary); }
+        /* MENU UTAMA GRID 2x2 (Baru) */
+        #screen-protocol {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dua kolom */
+            gap: 15px; /* Jarak antar kotak */
+            padding-top: 10px;
+        }
+
+        /* KARTU MENU (Diubah agar support Grid) */
+        .card { 
+            background-color: var(--bg-card); 
+            border: 1px solid var(--border); 
+            border-radius: 16px; /* Lebih rounded seperti web tools */
+            padding: 20px 15px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            display: flex; 
+            flex-direction: column; /* Icon diatas, teks dibawah */
+            align-items: center; 
+            text-align: center;
+            position: relative;
+            box-sizing: border-box;
+            height: 100%; /* Agar tinggi sama */
+            justify-content: center;
+        }
+
+        /* Hover efek purple */
+        .card:hover, .card:active { 
+            border-color: var(--primary-dark); 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.1);
+        }
+
+        .card-icon { 
+            width: 50px; height: 50px; 
+            background: rgba(139, 92, 246, 0.1); /* Background purple transparan */
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            margin-bottom: 15px; font-size: 24px; color: var(--primary);
+        }
+
+        .card-content h3 { margin: 0 0 5px 0; font-size: 15px; font-weight: 700; color: white; }
+        .card-content p { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Badge disesuaikan untuk posisi Grid */
+        .badge { 
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(139, 92, 246, 0.1); color: var(--primary); 
+            padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; 
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
         .badge.disabled { background: #262626; color: #737373; border-color: #404040; }
 
-        /* FORM INPUT */
+        /* FORM INPUT (Style Ungu) */
         .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: bold; color: var(--primary); text-transform: uppercase; letter-spacing: 1px;}
-        input { width: 100%; box-sizing: border-box; padding: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: white; font-size: 15px; outline: none; transition: 0.2s;}
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);}
+        .form-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        input { width: 100%; box-sizing: border-box; padding: 15px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-input); color: white; font-size: 15px; outline: none; transition: 0.2s;}
+        input:focus { border-color: var(--primary-dark); box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);}
         
-        .btn-main { background: var(--primary); color: #000; padding: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;}
-        .btn-main:hover { background: #0891b2; color: white;}
+        .btn-main { background: var(--primary-dark); color: white; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; font-size: 16px; margin-top: 10px; transition: 0.2s;}
+        .btn-main:hover { background: #7c3aed; transform: translateY(-1px);}
 
-        /* TAMPILAN HASIL AKUN - GAYA TERMINAL/CODE BLOCK (ANTI JIPLAK) */
+        /* TAMPILAN HASIL AKUN - GAYA TERMINAL PURPLE */
         .success-header { text-align: center; margin-bottom: 25px; }
-        .success-header h2 { color: var(--primary); margin: 10px 0 5px 0;}
+        .success-header h2 { color: #34d399; /* Hijau Sukses */ margin: 10px 0 5px 0; font-weight: 800;}
         .success-header p { color: var(--text-muted); font-size: 14px; margin: 0;}
 
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;}
-        .info-box { background: var(--bg-input); border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: center;}
-        .info-box .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px;}
-        .info-box .val { font-size: 14px; font-weight: bold; color: white;}
+        .info-box { background: var(--bg-input); border: 1px solid var(--border); padding: 12px; border-radius: 10px; text-align: center;}
+        .info-box .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; font-weight: 600; letter-spacing: 0.5px;}
+        .info-box .val { font-size: 14px; font-weight: 700; color: white;}
 
-        .code-block { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 15px; position: relative; overflow: hidden;}
-        .code-header { background: #1e1e1e; padding: 8px 15px; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;}
-        .code-content { padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #10b981; word-break: break-all; line-height: 1.5;}
+        .code-block { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; overflow: hidden;}
+        .code-header { background: #1c1f2e; padding: 10px 15px; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600;}
+        .code-content { padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; color: #a78bfa; word-break: break-all; line-height: 1.6;}
         
-        .btn-copy-sm { background: var(--primary); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;}
-        .btn-copy-sm:hover { background: #0891b2; color: white;}
+        .btn-copy-sm { background: var(--border); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s;}
+        .btn-copy-sm:hover { background: #3f4661;}
 
-        .loading { color: var(--primary); font-weight: bold; animation: pulse 1.5s infinite; text-align: center; margin-top: 30px;}
-        @keyframes pulse { 50% { opacity: 0.3; } }
+        .loading { color: var(--primary); font-weight: 600; animation: pulse 1.5s infinite; text-align: center; margin-top: 30px;}
+        @keyframes pulse { 50% { opacity: 0.4; } }
 
-        #toast { visibility: hidden; min-width: 200px; background-color: var(--primary); color: #000; font-weight: bold; text-align: center; border-radius: 30px; padding: 12px; position: fixed; z-index: 99; left: 50%; bottom: 40px; font-size: 14px; transform: translateX(-50%); box-shadow: 0 5px 15px rgba(0,0,0,0.5);}
+        #toast { visibility: hidden; min-width: 200px; background-color: #34d399; color: #000; font-weight: 700; text-align: center; border-radius: 30px; padding: 12px 20px; position: fixed; z-index: 99; left: 50%; bottom: 40px; font-size: 14px; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
         #toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 2s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 40px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 40px; opacity: 1;} to {bottom: 0; opacity: 0;} }
@@ -75,55 +130,61 @@
 <body>
 
 <div class="container">
-    <div class="header">
-        <button class="btn-back" id="btn-back" onclick="goBack()">Kembali</button>
-        <h2 id="header-title">VPN Protocol</h2>
+    
+    <div id="store-title" class="store-logo">
+        <h1>MasD <span>VPNStore</span></h1>
+        <p>Premium Tunneling Automations System</p>
+    </div>
+
+    <div id="sub-header" class="header" style="display: none;">
+        <button class="btn-back" id="btn-back" onclick="goBack()">Back</button>
+        <h2 id="header-title">Sub Menu</h2>
     </div>
 
     <div id="screen-protocol" class="screen active">
         <div class="card" onclick="pilihProtokol('SSH')">
             <div class="card-icon">⚡</div>
-            <div class="card-content"><h3>SSH Premium</h3><p>Secure Shell Custom Routing</p></div>
-            <div class="badge">Tersedia</div>
+            <div class="card-content"><h3>SSH</h3><p>Custom Routing</p></div>
+            <div class="badge">Online</div>
         </div>
-        <div class="card" onclick="alert('Protokol VMess sedang dalam tahap integrasi otomatis. Segera hadir!')">
+        <div class="card" onclick="alert('VMess segera hadir!')">
             <div class="card-icon">🌀</div>
-            <div class="card-content"><h3>VMess</h3><p>V2Ray Protocol Standar</p></div>
+            <div class="card-content"><h3>VMess</h3><p>Standard V2Ray</p></div>
             <div class="badge disabled">Segera</div>
         </div>
-        <div class="card" onclick="alert('Protokol VLESS sedang dalam tahap integrasi otomatis. Segera hadir!')">
+        <div class="card" onclick="alert('VLESS segera hadir!')">
             <div class="card-icon">🛡️</div>
-            <div class="card-content"><h3>VLESS</h3><p>V2Ray Lightweight Protocol</p></div>
+            <div class="card-content"><h3>VLESS</h3><p>Light V2Ray</p></div>
             <div class="badge disabled">Segera</div>
         </div>
-        <div class="card" onclick="alert('Protokol Trojan sedang dalam tahap integrasi otomatis. Segera hadir!')">
+        <div class="card" onclick="alert('Trojan segera hadir!')">
             <div class="card-icon">🐎</div>
-            <div class="card-content"><h3>Trojan</h3><p>Bypass SNI Injection</p></div>
+            <div class="card-content"><h3>Trojan</h3><p>Bypass SNI</p></div>
             <div class="badge disabled">Segera</div>
         </div>
     </div>
 
     <div id="screen-server" class="screen">
-        <div class="card" onclick="pilihServer('SG-DO', 'SG Digital Ocean')">
-            <div class="card-icon">🇸🇬</div>
-            <div class="card-content"><h3>Singapore</h3><p>DigitalOcean, LLC</p></div>
-            <div class="badge">Online</div>
+        <div class="card" style="flex-direction:row; justify-content:flex-start; text-align:left; margin-bottom:15px; padding:15px;" onclick="pilihServer('SG-DO', 'Singapore')">
+            <div class="card-icon" style="margin-bottom:0; margin-right:15px;">🇸🇬</div>
+            <div class="card-content"><h3>Singapore</h3><p>Digital Ocean Server</p></div>
+            <div class="badge" style="position:static; margin-left:auto;">Online</div>
         </div>
-        <div class="card" onclick="pilihServer('ID-TECH', 'ID Techno')">
-            <div class="card-icon">🇮🇩</div>
-            <div class="card-content"><h3>Indonesia</h3><p>PT Indotechno Digital Komputasi</p></div>
-            <div class="badge">Online</div>
+        <div class="card" style="flex-direction:row; justify-content:flex-start; text-align:left; margin-bottom:15px; padding:15px;" onclick="pilihServer('ID-TECH', 'Indonesia')">
+            <div class="card-icon" style="margin-bottom:0; margin-right:15px;">🇮🇩</div>
+            <div class="card-content"><h3>Indonesia</h3><p>Premium Bandwidth</p></div>
+            <div class="badge" style="position:static; margin-left:auto;">Online</div>
         </div>
     </div>
 
     <div id="screen-type" class="screen">
         <div class="card" onclick="pilihTipe('premium')">
             <div class="card-icon">💎</div>
-            <div class="card-content"><h3>Akun Premium</h3><p>Buat akun berbayar (15/30 Hari)</p></div>
+            <div class="card-content"><h3>Premium</h3><p>Akun Berbayar (15/30 Hari)</p></div>
         </div>
-        <div class="card" onclick="alert('Sistem Trial 15 Menit sedang dipersiapkan. Mohon tunggu update selanjutnya!')">
+        <div class="card" style="margin-top:15px;" onclick="alert('Trial 15 Menit segera hadir!')">
             <div class="card-icon">⏱️</div>
-            <div class="card-content"><h3>Trial 15 Menit</h3><p>Coba jaringan gratis</p></div>
+            <div class="card-content"><h3>Trial 15m</h3><p>Coba jaringan gratis</p></div>
             <div class="badge disabled">Segera</div>
         </div>
     </div>
@@ -131,47 +192,47 @@
     <div id="screen-duration" class="screen">
         <div class="card" onclick="pilihDurasi('15', '5000')">
             <div class="card-icon">📅</div>
-            <div class="card-content"><h3>Paket 15 Hari</h3><p>Rp 5.000,-</p></div>
+            <div class="card-content"><h3>15 Hari</h3><p>Rp 5.000,-</p></div>
         </div>
-        <div class="card" onclick="pilihDurasi('30', '10000')">
+        <div class="card" style="margin-top:15px;" onclick="pilihDurasi('30', '10000')">
             <div class="card-icon">🚀</div>
-            <div class="card-content"><h3>Paket 30 Hari</h3><p>Rp 10.000,-</p></div>
+            <div class="card-content"><h3>30 Hari</h3><p>Rp 10.000,-</p></div>
         </div>
     </div>
 
     <div id="screen-input" class="screen">
-        <div style="background: var(--bg-input); padding: 15px; border-radius: 8px; border: 1px dashed var(--border); margin-bottom: 20px;">
-            <p style="margin: 0; font-size: 13px; color: var(--text-muted);" id="ringkasan-pesanan">-</p>
+        <div style="background: var(--bg-input); padding: 18px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5;" id="ringkasan-pesanan">-</p>
         </div>
-        <div class="form-group"><label>Username</label><input type="text" id="input-user" placeholder="Masukkan username"></div>
-        <div class="form-group"><label>Password</label><input type="text" id="input-pass" placeholder="Masukkan password"></div>
+        <div class="form-group"><label>Username</label><input type="text" id="input-user" placeholder="Ketik username"></div>
+        <div class="form-group"><label>Password</label><input type="text" id="input-pass" placeholder="Ketik password"></div>
         <button class="btn-main" onclick="prosesCheckout()">Bayar via QRIS</button>
     </div>
 
     <div id="screen-loading" class="screen">
         <div style="text-align: center; margin-top: 50px;">
             <div style="font-size: 40px; margin-bottom: 15px;">⚙️</div>
-            <h3 style="color: white;">Verifikasi Pembayaran</h3>
-            <p class="loading">Sedang mengkonfigurasi server...</p>
+            <h3 style="color: white; font-weight: 700;">Memverifikasi</h3>
+            <p class="loading">Menunggu sistem pembayaran...</p>
         </div>
     </div>
 
     <div id="screen-success" class="screen">
         <div class="success-header">
-            <h2>TRANSAKSI BERHASIL</h2>
-            <p>Sistem telah men-deploy akun Anda</p>
+            <h2>SUKSES!</h2>
+            <p>Akun Anda telah diaktifkan</p>
         </div>
 
         <div class="info-grid">
-            <div class="info-box"><div class="lbl">Protokol</div><div class="val" id="res-proto">-</div></div>
+            <div class="info-box"><div class="lbl">Protocol</div><div class="val" id="res-proto">-</div></div>
             <div class="info-box"><div class="lbl">Expired</div><div class="val" id="res-exp">-</div></div>
-            <div class="info-box"><div class="lbl">Limit Device</div><div class="val">2 IP</div></div>
-            <div class="info-box"><div class="lbl">Port / SSL</div><div class="val">80 / 443</div></div>
+            <div class="info-box"><div class="lbl">Device Limit</div><div class="val">2 Device</div></div>
+            <div class="info-box"><div class="lbl">SSL Port</div><div class="val">443</div></div>
         </div>
 
         <div class="code-block">
             <div class="code-header">
-                <span>DETAIL LOGIN</span>
+                <span>LOGIN DATA</span>
                 <button class="btn-copy-sm" onclick="copyText('login-data')">SALIN</button>
             </div>
             <div class="code-content" id="login-data">Loading...</div>
@@ -179,7 +240,7 @@
 
         <div class="code-block">
             <div class="code-header">
-                <span>PAYLOAD / FORMAT WS</span>
+                <span>WS FORMAT (Port 80)</span>
                 <button class="btn-copy-sm" onclick="copyText('ws-data')">SALIN</button>
             </div>
             <div class="code-content" id="ws-data">Loading...</div>
@@ -187,13 +248,13 @@
 
         <div class="code-block">
             <div class="code-header">
-                <span>PAYLOAD / FORMAT TLS</span>
+                <span>TLS FORMAT (Port 443)</span>
                 <button class="btn-copy-sm" onclick="copyText('tls-data')">SALIN</button>
             </div>
             <div class="code-content" id="tls-data">Loading...</div>
         </div>
 
-        <button class="btn-main" onclick="location.reload()" style="background: #262626; color: white;">Buat Pesanan Baru</button>
+        <button class="btn-main" onclick="location.reload()" style="background: var(--bg-input); color: white; margin-top:20px;">Buat Pesanan Baru</button>
     </div>
 </div>
 
@@ -204,15 +265,32 @@
     let historyStack = ['screen-protocol'];
 
     function showScreen(screenId, title) {
+        // Sembunyikan semua screen
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        // Tampilkan screen yang dituju
         document.getElementById(screenId).classList.add('active');
-        document.getElementById('header-title').innerText = title;
 
+        // LOGIKA HEADER BARU
+        const storeTitle = document.getElementById('store-title');
+        const subHeader = document.getElementById('sub-header');
         const btnBack = document.getElementById('btn-back');
-        if(screenId === 'screen-protocol' || screenId === 'screen-loading' || screenId === 'screen-success') {
+
+        if(screenId === 'screen-protocol') {
+            // Jika di menu utama, tampilkan logo besar, sembunyikan navigasi
+            storeTitle.style.display = 'block';
+            subHeader.style.display = 'none';
+        } else if (screenId === 'screen-loading' || screenId === 'screen-success') {
+            // Jika loading/sukses, sembunyikan logo dan tombol back
+            storeTitle.style.display = 'none';
+            subHeader.style.display = 'flex';
             btnBack.style.display = 'none';
+            document.getElementById('header-title').innerText = title;
         } else {
+            // Selain itu (sub-menu), tampilkan navigasi & tombol back, sembunyikan logo
+            storeTitle.style.display = 'none';
+            subHeader.style.display = 'flex';
             btnBack.style.display = 'block';
+            document.getElementById('header-title').innerText = title;
         }
     }
 
@@ -220,14 +298,17 @@
         if(historyStack.length > 1) {
             historyStack.pop();
             const prevScreen = historyStack[historyStack.length - 1];
-            let title = "VPN Protocol";
+            
+            let title = "";
             if(prevScreen === 'screen-server') title = "Pilih Region";
             if(prevScreen === 'screen-type') title = "Tipe Layanan";
             if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            
             showScreen(prevScreen, title);
         }
     }
 
+    // Logic pemilihan (Sama seperti sebelumnya, hanya update UI)
     function pilihProtokol(proto) { order.protocol = proto; historyStack.push('screen-server'); showScreen('screen-server', 'Pilih Region'); }
     function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
     function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
@@ -238,6 +319,7 @@
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
+    // FINALISASI ORDER ID (Sesuai perbaikan kemarin)
     function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
         const pass = document.getElementById('input-pass').value.trim();
@@ -245,10 +327,16 @@
         if (!user || !pass) return alert("Username dan Password tidak boleh kosong!");
 
         const slug = "masd";
+        // Format Order ID: SSH-[Server]-[Durasi]-[User]-[Pass]-[Timestamp]
         const orderId = `SSH-${order.serverId}-${order.duration}-${user}-${pass}-${Date.now()}`;
+        
+        // Buka pembayaran
         window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
-        showScreen('screen-loading', 'Memproses Data');
+        
+        // Pindah ke loading
+        showScreen('screen-loading', 'Deploying System');
 
+        // Mulai Cek Database
         let cek = setInterval(async () => {
             try {
                 const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
@@ -265,17 +353,17 @@
                     document.getElementById('res-proto').innerText = order.protocol;
                     document.getElementById('res-exp').innerText = json.akun.exp;
 
-                    // Mengisi Code Blocks
+                    // Mengisi Code Blocks (Tampilan Terminal)
                     document.getElementById('login-data').innerHTML = `Host/Domain : ${domain}<br>Username    : ${u}<br>Password    : ${p}`;
                     document.getElementById('ws-data').innerText = `${domain}:80@${u}:${p}`;
                     document.getElementById('tls-data').innerText = `${domain}:443@${u}:${p}`;
                 }
-            } catch (e) { console.log("Checking..."); }
+            } catch (e) { console.log("Checking API..."); }
         }, 3000);
     }
 
+    // Fungsi Salin (Style Web Tools)
     function copyText(elementId) {
-        // Karena login-data pakai tag <br>, kita ubah dulu jadi teks biasa
         let textToCopy = document.getElementById(elementId).innerText; 
         navigator.clipboard.writeText(textToCopy).then(() => {
             const toast = document.getElementById("toast");
