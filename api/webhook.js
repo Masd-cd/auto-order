@@ -8,26 +8,51 @@ export default async function handler(req, res) {
         const orderId = dataPakasir.order_id;
         const potong = orderId.split('-'); 
 
-        // potong[0] = SSH, potong[1] = SGDO / IDTECH, potong[2] = Durasi
         if (potong[0] === 'SSH') {
             const serverDipilih = potong[1];
-            const dataKeVPS = {
-                expired: parseInt(potong[2]),
-                limitip: 2,
-                username: potong[3],
-                password: potong[4]
-            };
+            const durasi = parseInt(potong[2]);
+            const username = potong[3];
+            const password = potong[4];
 
             let vpsUrl = '';
-            // Pengecekan nama server yang SUDAH TANPA STRIP
+            let fetchOptions = {};
+
+            // LOGIKA 1: JIKA SERVER SINGAPORE (POTATO API)
             if (serverDipilih === 'SGDO') {
                 vpsUrl = 'http://167.172.73.230/vps/sshvpn';
-            } else if (serverDipilih === 'IDTECH') {
-                // Masukkan IP VPS Indonesia kamu di sini nanti
-                vpsUrl = 'http://IP-VPS-INDONESIA-KAMU/vps/sshvpn';
+                fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.POTATO_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        expired: durasi,
+                        limitip: 2,
+                        username: username,
+                        password: password
+                    })
+                };
+            } 
+            // LOGIKA 2: JIKA SERVER INDONESIA (AGUNG API)
+            else if (serverDipilih === 'IDTECH') {
+                vpsUrl = 'https://www.agung-store.my.id/api/addssh';
+                fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': process.env.AGUNG_API_KEY || '899e75f3d792d75954e05db23c76103809e084ebc0788a57a05f9d9dbe656aad'
+                    },
+                    body: JSON.stringify({
+                        server: "WIJAYA", // Catatan: Ganti jika nama server di panelmu bukan WIJAYA
+                        username: username,
+                        password: password,
+                        ipLimit: 2,
+                        days: durasi
+                    })
+                };
             }
 
-            // Jika URL masih kosong (tidak cocok keduanya), batalkan eksekusi
             if (!vpsUrl) {
                 console.error("❌ URL VPS Kosong, Server tidak dikenali:", serverDipilih);
                 return res.status(200).send('OK'); 
@@ -39,22 +64,17 @@ export default async function handler(req, res) {
             });
 
             try {
-                const resVPS = await fetch(vpsUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${process.env.POTATO_API_KEY}`
-                    },
-                    body: JSON.stringify(dataKeVPS)
-                });
-                
+                const resVPS = await fetch(vpsUrl, fetchOptions);
                 const hasilVPS = await resVPS.json();
 
-                if (resVPS.ok && hasilVPS.data) {
+                // Antisipasi perbedaan format output Potato dan Agung
+                let dataDisimpan = hasilVPS.data || hasilVPS;
+
+                if (resVPS.ok) {
                     await client.connect();
-                    await client.set(orderId, JSON.stringify(hasilVPS.data), { EX: 3600 });
+                    await client.set(orderId, JSON.stringify(dataDisimpan), { EX: 3600 });
                     await client.quit();
-                    console.log(`✅ Akun Premium Aktif: ${dataKeVPS.username} di Server ${serverDipilih}`);
+                    console.log(`✅ Akun Premium Aktif: ${username} di Server ${serverDipilih}`);
                 }
             } catch (err) {
                 if (client.isOpen) await client.quit();
