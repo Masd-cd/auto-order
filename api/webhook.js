@@ -8,8 +8,7 @@ export default async function handler(req, res) {
         const orderId = dataPakasir.order_id;
         const potong = orderId.split('-'); 
 
-        // Logika Baru: SSH-[SERVER]-[DURASI]-[USER]-[PASS]
-        // potong[0] = SSH, potong[1] = SG-DO / ID-TECH, potong[2] = Durasi
+        // potong[0] = SSH, potong[1] = SGDO / IDTECH, potong[2] = Durasi
         if (potong[0] === 'SSH') {
             const serverDipilih = potong[1];
             const dataKeVPS = {
@@ -20,12 +19,18 @@ export default async function handler(req, res) {
             };
 
             let vpsUrl = '';
-            // Tentukan IP VPS berdasarkan pilihan di web
-            if (serverDipilih === 'SG-DO') {
+            // Pengecekan nama server yang SUDAH TANPA STRIP
+            if (serverDipilih === 'SGDO') {
                 vpsUrl = 'http://167.172.73.230/vps/sshvpn';
-            } else if (serverDipilih === 'ID-TECH') {
+            } else if (serverDipilih === 'IDTECH') {
                 // Masukkan IP VPS Indonesia kamu di sini nanti
                 vpsUrl = 'http://IP-VPS-INDONESIA-KAMU/vps/sshvpn';
+            }
+
+            // Jika URL masih kosong (tidak cocok keduanya), batalkan eksekusi
+            if (!vpsUrl) {
+                console.error("❌ URL VPS Kosong, Server tidak dikenali:", serverDipilih);
+                return res.status(200).send('OK'); 
             }
 
             const client = createClient({
@@ -34,7 +39,6 @@ export default async function handler(req, res) {
             });
 
             try {
-                // 1. TEMBAK VPS
                 const resVPS = await fetch(vpsUrl, {
                     method: 'POST',
                     headers: {
@@ -47,11 +51,10 @@ export default async function handler(req, res) {
                 const hasilVPS = await resVPS.json();
 
                 if (resVPS.ok && hasilVPS.data) {
-                    // 2. SIMPAN KE REDIS
                     await client.connect();
                     await client.set(orderId, JSON.stringify(hasilVPS.data), { EX: 3600 });
                     await client.quit();
-                    console.log(`✅ Akun Premium Aktif: ${dataKeVPS.username}`);
+                    console.log(`✅ Akun Premium Aktif: ${dataKeVPS.username} di Server ${serverDipilih}`);
                 }
             } catch (err) {
                 if (client.isOpen) await client.quit();
