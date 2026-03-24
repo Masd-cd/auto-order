@@ -80,7 +80,7 @@ export default async function handler(req, res) {
                         body: JSON.stringify({
                             server: "MASDVPN",
                             username: username,
-                            quota: 0, // Aku set 0 untuk unlimited (sesuaikan jika harus ada angka)
+                            quota: 300, // Aku set 0 untuk unlimited (sesuaikan jika harus ada angka)
                             ipLimit: 2,
                             days: durasi
                         })
