@@ -262,7 +262,7 @@
  // ... di dalam bagian sukses pengecekan akun ...
 if (json.status === 'sukses') {
     clearInterval(cek);
-    showScreen('screen-success', 'Informasi Akun VMess');
+    showScreen('screen-success', 'Detail Akun VMess');
     
     // Tangkap data mentah dari Agung/Potato
     const akun = json.akun;
@@ -320,7 +320,7 @@ if (json.status === 'sukses') {
             const json = await response.json();
 
             if (json.status === 'sukses') {
-                showScreen('screen-success', 'Informasi Akun VMess');
+                showScreen('screen-success', 'Detail Trial VMess');
                 
                 const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
                 const u = json.akun.username || json.akun.user || "trial-auto";
