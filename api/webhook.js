@@ -87,6 +87,27 @@ export default async function handler(req, res) {
                     };
                 }
             }
+                        // ==========================================
+            // LOGIKA 3: VLESS
+            // ==========================================
+            else if (protokol === 'VLESS') {
+                if (serverDipilih === 'SGDO') {
+                    vpsUrl = 'http://167.172.73.230/vps/vlessall'; // Asumsi Potato API
+                    fetchOptions = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.POTATO_API_KEY}` },
+                        body: JSON.stringify({ expired: durasi, kuota: 300, limitip: 2, username: username, uuidv2: buatUUID() })
+                    };
+                } else if (serverDipilih === 'IDTECH') {
+                    vpsUrl = 'https://www.agung-store.my.id/api/addvless'; // Asumsi Agung API
+                    fetchOptions = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.AGUNG_API_KEY },
+                        body: JSON.stringify({ server: "MASDVPN", username: username, quota: 300, ipLimit: 2, days: durasi })
+                    };
+                }
+            }
+            
 
             if (!vpsUrl) {
                 console.error("❌ URL VPS Kosong, Protokol/Server tidak dikenali:", protokol, serverDipilih);
