@@ -259,31 +259,38 @@
                 const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
                 const json = await response.json();
 
-                                if (json.status === 'sukses') {
-                    clearInterval(cek);
-                    
-                    // KAMERA PENGINTAI DATA AGUNG
-                    alert("DATA MENTAH AGUNG: " + JSON.stringify(json.akun));
-                    
-                    showScreen('screen-success', 'Informasi Akun VMess');
+ // ... di dalam bagian sukses pengecekan akun ...
+if (json.status === 'sukses') {
+    clearInterval(cek);
+    showScreen('screen-success', 'Informasi Akun VMess');
+    
+    // Tangkap data mentah dari Agung/Potato
+    const akun = json.akun;
+    
+    // 1. Cari Link TLS: Cek key 'vmess', 'link.tls', atau 'vmess_tls'
+    const linkTls = akun.vmess || 
+                    (akun.link && akun.link.tls) || 
+                    akun.vmess_tls || 
+                    "⚠️ Link TLS tidak dikirim oleh server.";
 
-                    
-                    const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
-                    const resUser = json.akun.username || json.akun.user || user;
-                    const resExp = json.akun.exp || json.akun.expired || order.duration + " Hari";
-                    
-                    // Deteksi Link VMess
-                    // Deteksi Link VMess (Kita paksa tampilkan data mentah Agung di kolom TLS)
-                    const linkTls = (json.akun.link && json.akun.link.tls) ? json.akun.link.tls : JSON.stringify(json.akun);
-                    const linkNtls = (json.akun.link && json.akun.link.none) ? json.akun.link.none : (json.akun.vmess_ntls || "Link Non-TLS tidak tersedia");
-                    
-                    document.getElementById('res-user').innerText = resUser;
-                    document.getElementById('res-host').innerText = domain;
-                    document.getElementById('res-exp').innerText = resExp;
+    // 2. Cari Link Non-TLS: Cek key 'vmess_ntls' atau 'link.none'
+    const linkNtls = akun.vmess_ntls || 
+                     (akun.link && akun.link.none) || 
+                     "Gunakan link TLS di atas.";
 
-                    document.getElementById('fmt-tls').innerText = linkTls;
-                    document.getElementById('fmt-ws').innerText = linkNtls;
-                }
+    // 3. Ambil data pendukung (Gunakan input user jika server kirim null)
+    const resUser = akun.username || user;
+    const resExp = akun.expired || akun.exp || (order.duration + " Hari");
+    const domain = akun.host || akun.hostname || "id.masdvpnstore.web.id";
+
+    // Update Tampilan UI
+    document.getElementById('res-user').innerText = resUser;
+    document.getElementById('res-host').innerText = domain;
+    document.getElementById('res-exp').innerText = resExp;
+    document.getElementById('fmt-tls').innerText = linkTls;
+    document.getElementById('fmt-ws').innerText = linkNtls;
+}
+
             } catch (e) { console.log("Menunggu validasi QRIS..."); }
         }, 3000);
     }
