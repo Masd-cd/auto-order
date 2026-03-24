@@ -273,7 +273,8 @@
                     const resExp = json.akun.exp || json.akun.expired || order.duration + " Hari";
                     
                     // Deteksi Link VMess
-                    const linkTls = (json.akun.link && json.akun.link.tls) ? json.akun.link.tls : (json.akun.vmess_tls || "Link TLS tidak tersedia");
+                    // Deteksi Link VMess (Kita paksa tampilkan data mentah Agung di kolom TLS)
+                    const linkTls = (json.akun.link && json.akun.link.tls) ? json.akun.link.tls : JSON.stringify(json.akun);
                     const linkNtls = (json.akun.link && json.akun.link.none) ? json.akun.link.none : (json.akun.vmess_ntls || "Link Non-TLS tidak tersedia");
                     
                     document.getElementById('res-user').innerText = resUser;
