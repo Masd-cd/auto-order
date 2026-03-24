@@ -3,293 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MasD VPNStore | Auto System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>MasD VPNStore - Premium Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* TEMA WARNA PURPLE MODERN (Adopsi dari Web Tools MasD) */
-        :root { 
-            --bg-main: #11141d; /* Hitam keunguan tua */
-            --bg-card: #1c1f2e; /* Sedikit lebih terang */
-            --border: #2a2e42; /* Warna garis purple muted */
-            --primary: #a78bfa; /* Ungu Muda Neon */
-            --primary-dark: #8b5cf6; /* Ungu Lebih Tua */
-            --text-main: #f9fafb; 
-            --text-muted: #94a3b8; 
-            --bg-input: #0c0e14; 
-        }
-
-        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
-        .container { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 30px;}
+        /* BASE STYLE DARI WEB TOOLS MASD */
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        .icon-box { background-color: #0f172a; border: 1px solid #334155; }
         
-        /* HEADER LOGO STORE (Baru) */
-        .store-logo { text-align: center; padding: 30px 20px 10px 20px; }
-        .store-logo h1 { margin: 0; font-size: 26px; font-weight: 800; color: white; letter-spacing: -1px;}
-        .store-logo h1 span { color: var(--primary); }
-        .store-logo p { margin: 5px 0 0 0; font-size: 14px; color: var(--text-muted); }
-
-        /* NAVIGASI HEADER (Saat di dalam menu) */
-        .header { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); background: #151824; border-radius: 12px 12px 0 0; margin: 0 10px;}
-        .btn-back { background: var(--border); border: none; color: white; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: none; margin-right: 15px; transition: 0.2s;}
-        .btn-back:hover { background: #3f4661; }
-        .header h2 { margin: 0; font-size: 17px; font-weight: 700; color: white; }
-
-        /* MANAJEMEN LAYAR */
-        .screen { display: none; padding: 20px 15px; animation: slideUp 0.3s ease; }
-        .screen.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* MENU UTAMA GRID 2x2 (Baru) */
-        #screen-protocol {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* Dua kolom */
-            gap: 15px; /* Jarak antar kotak */
-            padding-top: 10px;
+        /* Animasi masuk tetap kita pertahankan biar elegan */
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* KARTU MENU (Diubah agar support Grid) */
-        .card { 
-            background-color: var(--bg-card); 
-            border: 1px solid var(--border); 
-            border-radius: 16px; /* Lebih rounded seperti web tools */
-            padding: 20px 15px; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-            display: flex; 
-            flex-direction: column; /* Icon diatas, teks dibawah */
-            align-items: center; 
-            text-align: center;
-            position: relative;
-            box-sizing: border-box;
-            height: 100%; /* Agar tinggi sama */
-            justify-content: center;
-        }
-
-        /* Hover efek purple */
-        .card:hover, .card:active { 
-            border-color: var(--primary-dark); 
-            transform: translateY(-3px); 
-            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.1);
-        }
-
-        .card-icon { 
-            width: 50px; height: 50px; 
-            background: rgba(139, 92, 246, 0.1); /* Background purple transparan */
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; 
-            margin-bottom: 15px; font-size: 24px; color: var(--primary);
-        }
-
-        .card-content h3 { margin: 0 0 5px 0; font-size: 15px; font-weight: 700; color: white; }
-        .card-content p { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-
-        /* Badge disesuaikan untuk posisi Grid */
-        .badge { 
-            position: absolute; top: 10px; right: 10px;
-            background: rgba(139, 92, 246, 0.1); color: var(--primary); 
-            padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; 
-            border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-        .badge.disabled { background: #262626; color: #737373; border-color: #404040; }
-
-        /* FORM INPUT (Style Ungu) */
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
-        input { width: 100%; box-sizing: border-box; padding: 15px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-input); color: white; font-size: 15px; outline: none; transition: 0.2s;}
-        input:focus { border-color: var(--primary-dark); box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);}
+        /* Logic Screen */
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
         
-        .btn-main { background: var(--primary-dark); color: white; padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; width: 100%; font-size: 16px; margin-top: 10px; transition: 0.2s;}
-        .btn-main:hover { background: #7c3aed; transform: translateY(-1px);}
+        /* Sembunyikan Scrollbar biar clean seperti App */
+        ::-webkit-scrollbar { display: none; }
 
-        /* TAMPILAN HASIL AKUN - GAYA TERMINAL PURPLE */
-        .success-header { text-align: center; margin-bottom: 25px; }
-        .success-header h2 { color: #34d399; /* Hijau Sukses */ margin: 10px 0 5px 0; font-weight: 800;}
-        .success-header p { color: var(--text-muted); font-size: 14px; margin: 0;}
-
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;}
-        .info-box { background: var(--bg-input); border: 1px solid var(--border); padding: 12px; border-radius: 10px; text-align: center;}
-        .info-box .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; font-weight: 600; letter-spacing: 0.5px;}
-        .info-box .val { font-size: 14px; font-weight: 700; color: white;}
-
-        .code-block { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; overflow: hidden;}
-        .code-header { background: #1c1f2e; padding: 10px 15px; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600;}
-        .code-content { padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; color: #a78bfa; word-break: break-all; line-height: 1.6;}
-        
-        .btn-copy-sm { background: var(--border); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s;}
-        .btn-copy-sm:hover { background: #3f4661;}
-
-        .loading { color: var(--primary); font-weight: 600; animation: pulse 1.5s infinite; text-align: center; margin-top: 30px;}
-        @keyframes pulse { 50% { opacity: 0.4; } }
-
-        #toast { visibility: hidden; min-width: 200px; background-color: #34d399; color: #000; font-weight: 700; text-align: center; border-radius: 30px; padding: 12px 20px; position: fixed; z-index: 99; left: 50%; bottom: 40px; font-size: 14px; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
-        #toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 2s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 40px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 40px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        /* Toast Notifikasi */
+        #toast { visibility: hidden; transition: opacity 0.3s; }
+        #toast.show { visibility: visible; opacity: 1; }
     </style>
 </head>
-<body>
+<body class="antialiased pb-10">
 
-<div class="container">
+<div class="max-w-md mx-auto relative min-h-screen">
     
-    <div id="store-title" class="store-logo">
-        <h1>MasD <span>VPNStore</span></h1>
-        <p>Premium Tunneling Automations System</p>
+    <div id="store-title" class="flex flex-col items-center justify-center pt-12 pb-6 fade-in-up">
+        <div class="w-14 h-14 card rounded-2xl flex items-center justify-center text-3xl mb-4 text-indigo-400 shadow-lg shadow-indigo-500/10">⚡</div>
+        <h1 class="text-3xl font-extrabold tracking-tight"><span class="text-indigo-400">MasD</span> <span class="text-cyan-400">VPNStore</span></h1>
+        <p class="text-slate-400 text-sm mt-2 font-medium">Premium Tunneling Automations System</p>
     </div>
 
-    <div id="sub-header" class="header" style="display: none;">
-        <button class="btn-back" id="btn-back" onclick="goBack()">Back</button>
-        <h2 id="header-title">Sub Menu</h2>
+    <div id="sub-header" class="hidden items-center p-5 border-b border-slate-800 sticky top-0 bg-[#0f172a] z-10">
+        <button id="btn-back" onclick="goBack()" class="icon-box text-slate-300 px-4 py-2 rounded-xl text-xs font-bold mr-4 hover:bg-slate-800 transition">Kembali</button>
+        <h2 id="header-title" class="text-lg font-bold text-white">Title</h2>
     </div>
 
-    <div id="screen-protocol" class="screen active">
-        <div class="card" onclick="pilihProtokol('SSH')">
-            <div class="card-icon">⚡</div>
-            <div class="card-content"><h3>SSH</h3><p>Custom Routing</p></div>
-            <div class="badge">Online</div>
-        </div>
-        <div class="card" onclick="alert('VMess segera hadir!')">
-            <div class="card-icon">🌀</div>
-            <div class="card-content"><h3>VMess</h3><p>Standard V2Ray</p></div>
-            <div class="badge disabled">Segera</div>
-        </div>
-        <div class="card" onclick="alert('VLESS segera hadir!')">
-            <div class="card-icon">🛡️</div>
-            <div class="card-content"><h3>VLESS</h3><p>Light V2Ray</p></div>
-            <div class="badge disabled">Segera</div>
-        </div>
-        <div class="card" onclick="alert('Trojan segera hadir!')">
-            <div class="card-icon">🐎</div>
-            <div class="card-content"><h3>Trojan</h3><p>Bypass SNI</p></div>
-            <div class="badge disabled">Segera</div>
-        </div>
-    </div>
-
-    <div id="screen-server" class="screen">
-        <div class="card" style="flex-direction:row; justify-content:flex-start; text-align:left; margin-bottom:15px; padding:15px;" onclick="pilihServer('SG-DO', 'Singapore')">
-            <div class="card-icon" style="margin-bottom:0; margin-right:15px;">🇸🇬</div>
-            <div class="card-content"><h3>Singapore</h3><p>Digital Ocean Server</p></div>
-            <div class="badge" style="position:static; margin-left:auto;">Online</div>
-        </div>
-        <div class="card" style="flex-direction:row; justify-content:flex-start; text-align:left; margin-bottom:15px; padding:15px;" onclick="pilihServer('ID-TECH', 'Indonesia')">
-            <div class="card-icon" style="margin-bottom:0; margin-right:15px;">🇮🇩</div>
-            <div class="card-content"><h3>Indonesia</h3><p>Premium Bandwidth</p></div>
-            <div class="badge" style="position:static; margin-left:auto;">Online</div>
-        </div>
-    </div>
-
-    <div id="screen-type" class="screen">
-        <div class="card" onclick="pilihTipe('premium')">
-            <div class="card-icon">💎</div>
-            <div class="card-content"><h3>Premium</h3><p>Akun Berbayar (15/30 Hari)</p></div>
-        </div>
-        <div class="card" style="margin-top:15px;" onclick="alert('Trial 15 Menit segera hadir!')">
-            <div class="card-icon">⏱️</div>
-            <div class="card-content"><h3>Trial 15m</h3><p>Coba jaringan gratis</p></div>
-            <div class="badge disabled">Segera</div>
-        </div>
-    </div>
-
-    <div id="screen-duration" class="screen">
-        <div class="card" onclick="pilihDurasi('15', '5000')">
-            <div class="card-icon">📅</div>
-            <div class="card-content"><h3>15 Hari</h3><p>Rp 5.000,-</p></div>
-        </div>
-        <div class="card" style="margin-top:15px;" onclick="pilihDurasi('30', '10000')">
-            <div class="card-icon">🚀</div>
-            <div class="card-content"><h3>30 Hari</h3><p>Rp 10.000,-</p></div>
-        </div>
-    </div>
-
-    <div id="screen-input" class="screen">
-        <div style="background: var(--bg-input); padding: 18px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
-            <p style="margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5;" id="ringkasan-pesanan">-</p>
-        </div>
-        <div class="form-group"><label>Username</label><input type="text" id="input-user" placeholder="Ketik username"></div>
-        <div class="form-group"><label>Password</label><input type="text" id="input-pass" placeholder="Ketik password"></div>
-        <button class="btn-main" onclick="prosesCheckout()">Bayar via QRIS</button>
-    </div>
-
-    <div id="screen-loading" class="screen">
-        <div style="text-align: center; margin-top: 50px;">
-            <div style="font-size: 40px; margin-bottom: 15px;">⚙️</div>
-            <h3 style="color: white; font-weight: 700;">Memverifikasi</h3>
-            <p class="loading">Menunggu sistem pembayaran...</p>
-        </div>
-    </div>
-
-    <div id="screen-success" class="screen">
-        <div class="success-header">
-            <h2>SUKSES!</h2>
-            <p>Akun Anda telah diaktifkan</p>
-        </div>
-
-        <div class="info-grid">
-            <div class="info-box"><div class="lbl">Protocol</div><div class="val" id="res-proto">-</div></div>
-            <div class="info-box"><div class="lbl">Expired</div><div class="val" id="res-exp">-</div></div>
-            <div class="info-box"><div class="lbl">Device Limit</div><div class="val">2 Device</div></div>
-            <div class="info-box"><div class="lbl">SSL Port</div><div class="val">443</div></div>
-        </div>
-
-        <div class="code-block">
-            <div class="code-header">
-                <span>LOGIN DATA</span>
-                <button class="btn-copy-sm" onclick="copyText('login-data')">SALIN</button>
+    <div id="screen-protocol" class="screen active px-5">
+        <span class="block text-lg font-bold text-white mb-4 mt-2">Pilih Layanan</span>
+        <div class="grid grid-cols-2 gap-4">
+            
+            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-indigo-500/50" onclick="pilihProtokol('SSH')">
+                <span class="absolute top-4 right-4 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-2 py-1 rounded-lg">Online</span>
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-yellow-400 mb-4 shadow-inner">⚡</div>
+                <h3 class="font-bold text-[15px] mb-1 text-slate-100">SSH</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Custom Routing</p>
             </div>
-            <div class="code-content" id="login-data">Loading...</div>
-        </div>
 
-        <div class="code-block">
-            <div class="code-header">
-                <span>WS FORMAT (Port 80)</span>
-                <button class="btn-copy-sm" onclick="copyText('ws-data')">SALIN</button>
+            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-slate-500/50" onclick="alert('Layanan VMess belum aktif.')">
+                <span class="absolute top-4 right-4 icon-box text-slate-500 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-cyan-500 mb-4 shadow-inner">🌀</div>
+                <h3 class="font-bold text-[15px] mb-1 text-slate-100">VMess</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Standard V2Ray</p>
             </div>
-            <div class="code-content" id="ws-data">Loading...</div>
-        </div>
 
-        <div class="code-block">
-            <div class="code-header">
-                <span>TLS FORMAT (Port 443)</span>
-                <button class="btn-copy-sm" onclick="copyText('tls-data')">SALIN</button>
+            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-slate-500/50" onclick="alert('Layanan VLESS belum aktif.')">
+                <span class="absolute top-4 right-4 icon-box text-slate-500 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-blue-400 mb-4 shadow-inner">🛡️</div>
+                <h3 class="font-bold text-[15px] mb-1 text-slate-100">VLESS</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Light V2Ray</p>
             </div>
-            <div class="code-content" id="tls-data">Loading...</div>
-        </div>
 
-        <button class="btn-main" onclick="location.reload()" style="background: var(--bg-input); color: white; margin-top:20px;">Buat Pesanan Baru</button>
+            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-slate-500/50" onclick="alert('Layanan Trojan belum aktif.')">
+                <span class="absolute top-4 right-4 icon-box text-slate-500 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-orange-400 mb-4 shadow-inner">🐎</div>
+                <h3 class="font-bold text-[15px] mb-1 text-slate-100">Trojan</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">Bypass SNI</p>
+            </div>
+
+        </div>
+        <div class="text-center mt-8 text-xs text-slate-500">Built with MasD Auto System</div>
     </div>
+
+    <div id="screen-server" class="screen px-5">
+        <div class="flex flex-col gap-4">
+            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihServer('SG-DO', 'Singapore DO')">
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 shrink-0">🇸🇬</div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-sm text-slate-100 mb-1">Singapore DO</h3>
+                    <p class="text-xs text-slate-400">Digital Ocean Premium</p>
+                </div>
+                <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-2 py-1 rounded-lg">Online</span>
+            </div>
+
+            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihServer('ID-TECH', 'Indonesia Techno')">
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 shrink-0">🇮🇩</div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-sm text-slate-100 mb-1">Indonesia Techno</h3>
+                    <p class="text-xs text-slate-400">Premium Bandwidth</p>
+                </div>
+                <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-2 py-1 rounded-lg">Online</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-type" class="screen px-5">
+        <div class="flex flex-col gap-4">
+            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihTipe('premium')">
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0">💎</div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-sm text-slate-100 mb-1">Premium Account</h3>
+                    <p class="text-xs text-slate-400">Buat akun berbayar (15/30 Hari)</p>
+                </div>
+            </div>
+            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-slate-500/50 opacity-70" onclick="alert('Trial 15 Menit segera hadir!')">
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0 text-slate-400">⏱️</div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-sm text-slate-100 mb-1">Trial 15 Menit</h3>
+                    <p class="text-xs text-slate-400">Coba jaringan gratis</p>
+                </div>
+                <span class="icon-box text-slate-400 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-duration" class="screen px-5">
+        <div class="flex flex-col gap-4">
+            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihDurasi('15', '5000')">
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0">📅</div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-sm text-slate-100 mb-1">Paket 15 Hari</h3>
+                    <p class="text-xs text-slate-400">Rp 5.000</p>
+                </div>
+            </div>
+            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihDurasi('30', '10000')">
+                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0">🚀</div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-sm text-slate-100 mb-1">Paket 30 Hari</h3>
+                    <p class="text-xs text-slate-400">Rp 10.000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-input" class="screen px-5">
+        <div class="card rounded-2xl p-4 mb-6">
+            <p id="ringkasan-pesanan" class="text-xs text-slate-300 leading-relaxed font-medium">-</p>
+        </div>
+        
+        <div class="mb-5">
+            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Username</label>
+            <input type="text" id="input-user" placeholder="Masukkan username" class="w-full bg-[#0f172a] border border-slate-700 text-slate-100 text-sm rounded-xl px-4 py-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition">
+        </div>
+        
+        <div class="mb-6">
+            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Password</label>
+            <input type="text" id="input-pass" placeholder="Masukkan password" class="w-full bg-[#0f172a] border border-slate-700 text-slate-100 text-sm rounded-xl px-4 py-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition">
+        </div>
+
+        <button onclick="prosesCheckout()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-indigo-500/20">
+            Lanjut Pembayaran
+        </button>
+    </div>
+
+    <div id="screen-loading" class="screen px-5">
+        <div class="text-center mt-16">
+            <div class="w-16 h-16 card border border-indigo-500/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse shadow-lg shadow-indigo-500/20">⚙️</div>
+            <h3 class="text-xl font-bold text-white mb-2">Memproses Order</h3>
+            <p class="text-sm text-indigo-400 animate-pulse font-medium">Sistem sedang memverifikasi...</p>
+        </div>
+    </div>
+
+    <div id="screen-success" class="screen px-5">
+        <div class="card rounded-3xl p-6 mb-5 shadow-lg">
+            <div class="flex items-center text-emerald-400 font-bold text-lg mb-6">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Transaksi Sukses
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
+                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Username</span>
+                    <div class="flex items-center">
+                        <span id="res-user" class="text-sm font-bold text-white mr-3 font-mono">-</span>
+                        <button onclick="copyText('res-user')" class="icon-box px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-700 transition">Copy</button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
+                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Password</span>
+                    <div class="flex items-center">
+                        <span id="res-pass" class="text-sm font-bold text-white mr-3 font-mono">-</span>
+                        <button onclick="copyText('res-pass')" class="icon-box px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-700 transition">Copy</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
+                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Host/IP</span>
+                    <div class="flex items-center">
+                        <span id="res-host" class="text-sm font-bold text-white mr-3 font-mono">-</span>
+                        <button onclick="copyText('res-host')" class="icon-box px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-700 transition">Copy</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
+                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Expired</span>
+                    <span id="res-exp" class="text-sm font-bold text-yellow-400">-</span>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Limit Device</span>
+                    <span class="text-sm font-bold text-white">2 IP</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="icon-box rounded-2xl p-4 mb-4 relative">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Format WS (Port 80)</span>
+                <button onclick="copyText('fmt-ws')" class="bg-slate-800 text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-slate-700">COPY</button>
+            </div>
+            <div id="fmt-ws" class="font-mono text-xs text-cyan-400 break-all leading-relaxed">-</div>
+        </div>
+
+        <div class="icon-box rounded-2xl p-4 mb-6 relative">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Format TLS (Port 443)</span>
+                <button onclick="copyText('fmt-tls')" class="bg-slate-800 text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-slate-700">COPY</button>
+            </div>
+            <div id="fmt-tls" class="font-mono text-xs text-cyan-400 break-all leading-relaxed">-</div>
+        </div>
+
+        <button onclick="location.reload()" class="w-full icon-box hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition">
+            Kembali ke Beranda
+        </button>
+    </div>
+
 </div>
 
-<div id="toast">Tersalin ke Clipboard!</div>
+<div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white px-6 py-3 rounded-full font-bold text-sm shadow-xl shadow-indigo-500/30 opacity-0 z-50">
+    Berhasil disalin!
+</div>
 
 <script>
     let order = { protocol: '', serverId: '', serverName: '', duration: '', price: '' };
     let historyStack = ['screen-protocol'];
 
     function showScreen(screenId, title) {
-        // Sembunyikan semua screen
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        // Tampilkan screen yang dituju
         document.getElementById(screenId).classList.add('active');
 
-        // LOGIKA HEADER BARU
         const storeTitle = document.getElementById('store-title');
         const subHeader = document.getElementById('sub-header');
         const btnBack = document.getElementById('btn-back');
 
         if(screenId === 'screen-protocol') {
-            // Jika di menu utama, tampilkan logo besar, sembunyikan navigasi
-            storeTitle.style.display = 'block';
-            subHeader.style.display = 'none';
+            storeTitle.classList.remove('hidden');
+            storeTitle.classList.add('flex');
+            subHeader.classList.remove('flex');
+            subHeader.classList.add('hidden');
         } else if (screenId === 'screen-loading' || screenId === 'screen-success') {
-            // Jika loading/sukses, sembunyikan logo dan tombol back
-            storeTitle.style.display = 'none';
-            subHeader.style.display = 'flex';
-            btnBack.style.display = 'none';
+            storeTitle.classList.add('hidden');
+            storeTitle.classList.remove('flex');
+            subHeader.classList.remove('hidden');
+            subHeader.classList.add('flex');
+            btnBack.classList.add('hidden');
             document.getElementById('header-title').innerText = title;
         } else {
-            // Selain itu (sub-menu), tampilkan navigasi & tombol back, sembunyikan logo
-            storeTitle.style.display = 'none';
-            subHeader.style.display = 'flex';
-            btnBack.style.display = 'block';
+            storeTitle.classList.add('hidden');
+            storeTitle.classList.remove('flex');
+            subHeader.classList.remove('hidden');
+            subHeader.classList.add('flex');
+            btnBack.classList.remove('hidden');
             document.getElementById('header-title').innerText = title;
         }
     }
@@ -300,43 +282,36 @@
             const prevScreen = historyStack[historyStack.length - 1];
             
             let title = "";
-            if(prevScreen === 'screen-server') title = "Pilih Region";
-            if(prevScreen === 'screen-type') title = "Tipe Layanan";
+            if(prevScreen === 'screen-server') title = "Pilih Server";
+            if(prevScreen === 'screen-type') title = "Pilih Layanan";
             if(prevScreen === 'screen-duration') title = "Pilih Paket";
             
             showScreen(prevScreen, title);
         }
     }
 
-    // Logic pemilihan (Sama seperti sebelumnya, hanya update UI)
-    function pilihProtokol(proto) { order.protocol = proto; historyStack.push('screen-server'); showScreen('screen-server', 'Pilih Region'); }
-    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
+    function pilihProtokol(proto) { order.protocol = proto; historyStack.push('screen-server'); showScreen('screen-server', 'Pilih Server'); }
+    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Pilih Layanan'); }
     function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
     
     function pilihDurasi(durasi, harga) {
         order.duration = durasi; order.price = harga;
-        document.getElementById('ringkasan-pesanan').innerHTML = `Server: <b>${order.serverName}</b><br>Durasi: <b>${order.duration} Hari</b><br>Tagihan: <b style="color:var(--primary)">Rp ${parseInt(harga).toLocaleString('id-ID')}</b>`;
+        document.getElementById('ringkasan-pesanan').innerHTML = `Server: <b class="text-white">${order.serverName}</b><br>Durasi: <b class="text-white">${order.duration} Hari</b><br>Tagihan: <b class="text-indigo-400">Rp ${parseInt(harga).toLocaleString('id-ID')}</b>`;
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
-    // FINALISASI ORDER ID (Sesuai perbaikan kemarin)
     function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
         const pass = document.getElementById('input-pass').value.trim();
 
-        if (!user || !pass) return alert("Username dan Password tidak boleh kosong!");
+        if (!user || !pass) return alert("Username dan Password wajib diisi!");
 
         const slug = "masd";
-        // Format Order ID: SSH-[Server]-[Durasi]-[User]-[Pass]-[Timestamp]
         const orderId = `SSH-${order.serverId}-${order.duration}-${user}-${pass}-${Date.now()}`;
         
-        // Buka pembayaran
         window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
-        
-        // Pindah ke loading
-        showScreen('screen-loading', 'Deploying System');
+        showScreen('screen-loading', 'Memproses Order');
 
-        // Mulai Cek Database
         let cek = setInterval(async () => {
             try {
                 const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
@@ -344,31 +319,30 @@
 
                 if (json.status === 'sukses') {
                     clearInterval(cek);
-                    showScreen('screen-success', 'Detail Sistem');
+                    showScreen('screen-success', 'Detail Akun');
                     
                     const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
                     const u = json.akun.username;
                     const p = json.akun.password;
                     
-                    document.getElementById('res-proto').innerText = order.protocol;
+                    document.getElementById('res-user').innerText = u;
+                    document.getElementById('res-pass').innerText = p;
+                    document.getElementById('res-host').innerText = domain;
                     document.getElementById('res-exp').innerText = json.akun.exp;
 
-                    // Mengisi Code Blocks (Tampilan Terminal)
-                    document.getElementById('login-data').innerHTML = `Host/Domain : ${domain}<br>Username    : ${u}<br>Password    : ${p}`;
-                    document.getElementById('ws-data').innerText = `${domain}:80@${u}:${p}`;
-                    document.getElementById('tls-data').innerText = `${domain}:443@${u}:${p}`;
+                    document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
+                    document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
                 }
-            } catch (e) { console.log("Checking API..."); }
+            } catch (e) { console.log("Menunggu pembayaran..."); }
         }, 3000);
     }
 
-    // Fungsi Salin (Style Web Tools)
     function copyText(elementId) {
         let textToCopy = document.getElementById(elementId).innerText; 
         navigator.clipboard.writeText(textToCopy).then(() => {
             const toast = document.getElementById("toast");
-            toast.className = "show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 2000);
         });
     }
 </script>
