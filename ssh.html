@@ -302,6 +302,44 @@
             setTimeout(() => { toast.classList.remove("show"); }, 2000);
         });
     }
+        async function prosesTrial() {
+        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        showScreen('screen-loading', 'Membuat Akun Trial');
+
+        try {
+            // Tembak file api/buat_trial.js yang baru kita buat
+            const response = await fetch('/api/buat_trial', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ serverId: order.serverId })
+            });
+            
+            const json = await response.json();
+
+            if (json.status === 'sukses') {
+                showScreen('screen-success', 'Trial SSH Berhasil');
+                
+                const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
+                const u = json.akun.username;
+                const p = json.akun.password;
+                
+                document.getElementById('res-user').innerText = u;
+                document.getElementById('res-pass').innerText = p;
+                document.getElementById('res-host').innerText = domain;
+                document.getElementById('res-exp').innerText = json.akun.exp;
+
+                document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
+                document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
+            } else {
+                alert("Gagal membuat trial. Silakan coba lagi.");
+                goBack();
+            }
+        } catch (e) { 
+            alert("Terjadi kesalahan koneksi.");
+            goBack();
+        }
+        }
 </script>
 </body>
 </html>
