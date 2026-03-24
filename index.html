@@ -6,9 +6,9 @@
     <title>MasD VPNStore | Premium Server</title>
     <style>
         /* TEMA & WARNA DASAR */
-        :root { --bg-main: #0B0F19; --bg-card: #111827; --border: #1E293B; --primary: #3B82F6; --text-main: #F3F4F6; --text-muted: #9CA3AF; }
+        :root { --bg-main: #0B0F19; --bg-card: #111827; --border: #1E293B; --primary: #3B82F6; --text-main: #F3F4F6; --text-muted: #9CA3AF; --bg-input: #1F2937; }
         body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; margin: 0; padding: 0; }
-        .container { max-width: 480px; margin: 0 auto; min-height: 100vh; background-color: var(--bg-main); position: relative; }
+        .container { max-width: 480px; margin: 0 auto; min-height: 100vh; background-color: var(--bg-main); position: relative; padding-bottom: 20px;}
         
         /* HEADER & NAVIGASI */
         .header { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); }
@@ -27,7 +27,6 @@
         .card-content h3 { margin: 0 0 5px 0; font-size: 16px; color: var(--text-main); }
         .card-content p { margin: 0; font-size: 13px; color: var(--text-muted); }
         .badge { background: #059669; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: auto; }
-        .badge.disabled { background: #4B5563; }
 
         /* FORM INPUT & TOMBOL */
         .form-group { margin-bottom: 15px; }
@@ -36,16 +35,48 @@
         input:focus { border-color: var(--primary); }
         
         .btn-main { background: var(--primary); color: white; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; margin-top: 20px; }
-        .btn-main:hover { background: #2563eb; }
         .btn-green { background: #10b981; }
 
-        /* TAMPILAN AKUN HASIL */
-        .detail-akun { background: var(--bg-card); padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #10b981; margin-top: 15px; }
-        .detail-akun p { margin: 8px 0; }
-        .label { color: var(--text-muted); display: inline-block; width: 90px;}
-        .val { color: #38bdf8; font-weight: bold; }
+        /* TAMPILAN HASIL AKUN PREMIUM ALA KEDAI SSH */
+        .box-premium { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 10px; }
+        .box-title { display: flex; align-items: center; font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #FBBF24; }
+        .box-title span { margin-left: 8px; color: white; }
+        
+        .section-title { font-size: 15px; color: var(--primary); font-weight: bold; margin: 20px 0 15px 0; display: flex; align-items: center;}
+        .section-title::before { content: '🔹'; margin-right: 8px; font-size: 12px;}
+        .section-title.link::before { content: '🔗'; }
+        .section-title.info::before { content: '📋'; }
+
+        /* Row Data */
+        .data-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .data-label { color: var(--text-muted); font-size: 14px; flex: 1; }
+        .data-value-group { display: flex; align-items: center; flex: 2; justify-content: flex-end; }
+        .data-value { background-color: var(--bg-input); padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 14px; color: var(--text-main); word-break: break-all; }
+        
+        /* Copy Button */
+        .btn-copy { background: none; border: none; margin-left: 8px; cursor: pointer; color: var(--text-muted); padding: 5px; border-radius: 4px;}
+        .btn-copy:hover { background-color: var(--border); color: white;}
+        .btn-copy svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Format Koneksi Block */
+        .format-block { margin-bottom: 15px; }
+        .format-label { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: var(--text-main); }
+        .format-box { display: flex; align-items: center; background-color: var(--bg-input); border-radius: 6px; padding: 10px; }
+        .format-text { font-family: monospace; font-size: 13px; color: var(--text-muted); flex: 1; word-break: break-all; }
+
+        /* Tambahan Info */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .info-item .lbl { font-size: 13px; font-weight: bold; margin-bottom: 4px; color: var(--text-main); }
+        .info-item .val { font-size: 14px; color: var(--text-muted); }
+
         .loading { color: #f59e0b; font-weight: bold; animation: blink 1.5s infinite; text-align: center; margin-top: 30px;}
         @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* Toast Notifikasi */
+        #toast { visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1; left: 50%; bottom: 30px; font-size: 15px; transform: translateX(-50%); }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 <body>
@@ -59,36 +90,20 @@
     <div id="screen-protocol" class="screen active">
         <div class="card" onclick="pilihProtokol('SSH')">
             <div class="card-icon">🛡️</div>
-            <div class="card-content">
-                <h3>SSH</h3>
-                <p>Secure Shell tunneling dengan enkripsi tinggi</p>
-            </div>
+            <div class="card-content"><h3>SSH</h3><p>Secure Shell tunneling dengan enkripsi tinggi</p></div>
             <div class="badge">Aktif</div>
-        </div>
-        <div class="card" onclick="alert('Protokol VMess sedang dalam pengembangan!')">
-            <div class="card-icon">🪩</div>
-            <div class="card-content">
-                <h3>VMess</h3>
-                <p>V2Ray protocol dengan performa optimal</p>
-            </div>
-            <div class="badge disabled">Segera</div>
         </div>
     </div>
 
-        <div id="screen-server" class="screen">
+    <div id="screen-server" class="screen">
         <div class="card" onclick="pilihServer('SG-DO', 'SG Digital Ocean')">
             <div class="card-icon">🇸🇬</div>
-            <div class="card-content">
-                <h3>SG Digital Ocean</h3>
-                <p>Singapura • Premium Server</p> </div>
+            <div class="card-content"><h3>SG Digital Ocean</h3><p>Singapura • Premium Server</p></div>
             <div class="badge">Online</div>
         </div>
         <div class="card" onclick="pilihServer('ID-TECH', 'ID Techno')">
             <div class="card-icon">🇮🇩</div>
-            <div class="card-content">
-                <h3>ID Techno</h3>
-                <p>Indonesia • Premium BW</p>
-            </div>
+            <div class="card-content"><h3>ID Techno</h3><p>Indonesia • Premium BW</p></div>
             <div class="badge">Online</div>
         </div>
     </div>
@@ -96,88 +111,134 @@
     <div id="screen-type" class="screen">
         <div class="card" onclick="pilihTipe('premium')">
             <div class="card-icon">💎</div>
-            <div class="card-content">
-                <h3>Create Account</h3>
-                <p>Buat akun premium dengan durasi custom</p>
-            </div>
-        </div>
-        <div class="card" onclick="alert('Fitur Trial sedang dimatikan sementara.')">
-            <div class="card-icon">🎁</div>
-            <div class="card-content">
-                <h3>Trial Account</h3>
-                <p>Coba gratis tanpa memotong saldo</p>
-            </div>
+            <div class="card-content"><h3>Create Account</h3><p>Buat akun premium dengan durasi custom</p></div>
         </div>
     </div>
 
     <div id="screen-duration" class="screen">
         <div class="card" onclick="pilihDurasi('15', '5000')">
             <div class="card-icon">⏱️</div>
-            <div class="card-content">
-                <h3>15 Hari</h3>
-                <p>Harga: Rp 5.000</p>
-            </div>
+            <div class="card-content"><h3>15 Hari</h3><p>Harga: Rp 5.000</p></div>
         </div>
         <div class="card" onclick="pilihDurasi('30', '10000')">
             <div class="card-icon">⏳</div>
-            <div class="card-content">
-                <h3>30 Hari</h3>
-                <p>Harga: Rp 10.000</p>
-            </div>
+            <div class="card-content"><h3>30 Hari</h3><p>Harga: Rp 10.000</p></div>
         </div>
     </div>
 
     <div id="screen-input" class="screen">
         <p style="color: var(--text-muted); margin-top: 0;" id="ringkasan-pesanan">Ringkasan: -</p>
-        
-        <div class="form-group">
-            <label>Username Akun</label>
-            <input type="text" id="input-user" placeholder="Ketik username bebas">
-        </div>
-        <div class="form-group">
-            <label>Password Akun</label>
-            <input type="text" id="input-pass" placeholder="Ketik password bebas">
-        </div>
-        
+        <div class="form-group"><label>Username Akun</label><input type="text" id="input-user" placeholder="Ketik username bebas"></div>
+        <div class="form-group"><label>Password Akun</label><input type="text" id="input-pass" placeholder="Ketik password bebas"></div>
         <button class="btn-main" onclick="prosesCheckout()">BELI VIA QRIS</button>
     </div>
 
     <div id="screen-loading" class="screen">
         <h2 style="text-align: center;">Menunggu Pembayaran ⏳</h2>
-        <p class="loading">Sistem sedang memproses transaksi Anda... <br>Halaman ini akan otomatis menampilkan detail akun jika sudah lunas.</p>
+        <p class="loading">Sistem sedang memproses transaksi Anda... <br>Jangan tutup halaman ini.</p>
     </div>
 
     <div id="screen-success" class="screen">
-        <h2 style="color: #10b981; text-align: center; margin-top: 0;">✅ AKUN BERHASIL DIBUAT</h2>
-        <div class="detail-akun">
-            <p><span class="label">Username</span>: <span class="val" id="res-user"></span></p>
-            <p><span class="label">Password</span>: <span class="val" id="res-pass"></span></p>
-            <p><span class="label">Host/IP</span>: <span class="val" id="res-host"></span></p>
-            <p><span class="label">Expired</span>: <span class="val" id="res-exp"></span></p>
-            <p><span class="label">Port SSH</span>: <span class="val">80, 443</span></p>
-            <p><span class="label">Protokol</span>: <span class="val" id="res-proto"></span></p>
+        
+        <div class="box-premium">
+            <div class="box-title">🌟 <span>Akun SSH Premium</span></div>
+
+            <div class="section-title">Informasi Akun SSH</div>
+            
+            <div class="data-row">
+                <div class="data-label">Username:</div>
+                <div class="data-value-group">
+                    <div class="data-value" id="res-user">-</div>
+                    <button class="btn-copy" onclick="copyData('res-user')">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Password:</div>
+                <div class="data-value-group">
+                    <div class="data-value" id="res-pass">-</div>
+                    <button class="btn-copy" onclick="copyData('res-pass')">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">Domain:</div>
+                <div class="data-value-group">
+                    <div class="data-value" id="res-domain" style="font-size: 13px;">-</div>
+                    <button class="btn-copy" onclick="copyData('res-domain')">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">SSH WS:</div>
+                <div class="data-value-group"><div class="data-value">80</div></div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-label">SSH SSL WS:</div>
+                <div class="data-value-group"><div class="data-value">443</div></div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+
+            <div class="section-title link">Format Koneksi</div>
+            
+            <div class="format-block">
+                <div class="format-label">WS Format:</div>
+                <div class="format-box">
+                    <div class="format-text" id="fmt-ws">-</div>
+                    <button class="btn-copy" onclick="copyData('fmt-ws')">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="format-block">
+                <div class="format-label">TLS Format:</div>
+                <div class="format-box">
+                    <div class="format-text" id="fmt-tls">-</div>
+                    <button class="btn-copy" onclick="copyData('fmt-tls')">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+
+            <div class="section-title info">Informasi Tambahan</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="lbl">Expired:</div>
+                    <div class="val" id="res-exp">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="lbl">IP Limit:</div>
+                    <div class="val">2 Device</div>
+                </div>
+            </div>
         </div>
-        <button class="btn-main btn-green" onclick="location.reload()">KEMBALI KE MENU UTAMA</button>
+
+        <button class="btn-main btn-green" onclick="location.reload()" style="margin-top: 20px;">KEMBALI KE MENU UTAMA</button>
     </div>
 </div>
 
+<div id="toast">Berhasil disalin ke clipboard!</div>
+
 <script>
-    // DATA PESANAN SEMENTARA
     let order = { protocol: '', serverId: '', serverName: '', duration: '', price: '' };
-    
-    // HISTORY NAVIGASI (Untuk tombol Back)
     let historyStack = ['screen-protocol'];
 
     function showScreen(screenId, title) {
-        // Sembunyikan semua screen
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        // Tampilkan screen yang dituju
         document.getElementById(screenId).classList.add('active');
-        
-        // Update Judul Header
         document.getElementById('header-title').innerText = title;
 
-        // Tampilkan/Sembunyikan tombol Back
         const btnBack = document.getElementById('btn-back');
         if(screenId === 'screen-protocol' || screenId === 'screen-loading' || screenId === 'screen-success') {
             btnBack.style.display = 'none';
@@ -188,73 +249,37 @@
 
     function goBack() {
         if(historyStack.length > 1) {
-            historyStack.pop(); // Buang halaman saat ini
+            historyStack.pop();
             const prevScreen = historyStack[historyStack.length - 1];
-            
-            // Setel ulang judul berdasarkan halaman sebelumnya
             let title = "Pilih Protocol VPN";
             if(prevScreen === 'screen-server') title = "Pilih Server";
             if(prevScreen === 'screen-type') title = "Jenis Akun";
             if(prevScreen === 'screen-duration') title = "Pilih Paket";
-            
             showScreen(prevScreen, title);
         }
     }
 
-    // FUNGSI-FUNGSI PEMILIHAN
-    function pilihProtokol(proto) {
-        order.protocol = proto;
-        historyStack.push('screen-server');
-        showScreen('screen-server', 'Pilih Server');
-    }
-
-    function pilihServer(id, name) {
-        order.serverId = id;
-        order.serverName = name;
-        historyStack.push('screen-type');
-        showScreen('screen-type', 'Jenis Akun');
-    }
-
-    function pilihTipe(tipe) {
-        if(tipe === 'premium') {
-            historyStack.push('screen-duration');
-            showScreen('screen-duration', 'Pilih Paket');
-        }
-    }
-
+    function pilihProtokol(proto) { order.protocol = proto; historyStack.push('screen-server'); showScreen('screen-server', 'Pilih Server'); }
+    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Jenis Akun'); }
+    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
+    
     function pilihDurasi(durasi, harga) {
-        order.duration = durasi;
-        order.price = harga;
-        
-        // Update teks ringkasan
-        document.getElementById('ringkasan-pesanan').innerText = 
-            `Server: ${order.serverName} | ${order.duration} Hari | Rp ${parseInt(harga).toLocaleString('id-ID')}`;
-            
-        historyStack.push('screen-input');
-        showScreen('screen-input', 'Detail Akun');
+        order.duration = durasi; order.price = harga;
+        document.getElementById('ringkasan-pesanan').innerText = `Server: ${order.serverName} | ${order.duration} Hari | Rp ${parseInt(harga).toLocaleString('id-ID')}`;
+        historyStack.push('screen-input'); showScreen('screen-input', 'Detail Akun');
     }
 
-    // FUNGSI CHECKOUT FINAL
     function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
         const pass = document.getElementById('input-pass').value.trim();
 
-        if (!user || !pass) {
-            alert("Mohon lengkapi Username dan Password!");
-            return;
-        }
+        if (!user || !pass) return alert("Mohon lengkapi Username dan Password!");
 
         const slug = "masd";
-        // Order ID tetap seperti kemarin agar webhook.js yang sudah jalan tidak perlu diubah
         const orderId = `SSH-${order.duration}-${user}-${pass}-${Date.now()}`;
-
-        // Buka Tab Pakasir
         window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
-
-        // Pindah ke halaman loading
         showScreen('screen-loading', 'Memproses');
 
-        // Mulai Pengecekan Database (Mencari kunci di Redis)
         let cek = setInterval(async () => {
             try {
                 const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
@@ -264,14 +289,32 @@
                     clearInterval(cek);
                     showScreen('screen-success', 'Transaksi Sukses');
                     
-                    document.getElementById('res-user').innerText = json.akun.username;
-                    document.getElementById('res-pass').innerText = json.akun.password;
-                    document.getElementById('res-host').innerText = json.akun.hostname || "sg.masdvpnstore.web.id";
+                    const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
+                    const u = json.akun.username;
+                    const p = json.akun.password;
+                    
+                    // Render Data
+                    document.getElementById('res-user').innerText = u;
+                    document.getElementById('res-pass').innerText = p;
+                    document.getElementById('res-domain').innerText = domain;
                     document.getElementById('res-exp').innerText = json.akun.exp;
-                    document.getElementById('res-proto').innerText = order.protocol;
+
+                    // Render Format Koneksi
+                    document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
+                    document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
                 }
-            } catch (e) { console.log("Menunggu lunas..."); }
+            } catch (e) { console.log("Menunggu..."); }
         }, 3000);
+    }
+
+    // Fungsi untuk tombol Copy
+    function copyData(elementId) {
+        const textToCopy = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        });
     }
 </script>
 </body>
