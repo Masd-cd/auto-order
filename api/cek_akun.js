@@ -1,25 +1,31 @@
+import { createClient } from 'redis';
+
 export default async function handler(req, res) {
     const { order_id } = req.query;
-    const kvUrl = process.env.KV_REST_API_URL;
-    const kvToken = process.env.KV_REST_API_TOKEN;
-
     if (!order_id) return res.status(400).json({ error: 'Order ID missing' });
 
-    try {
-        const response = await fetch(`${kvUrl}/GET/${order_id}`, {
-            headers: { 'Authorization': `Bearer ${kvToken}` }
-        });
-        const data = await response.json();
+    const client = createClient({
+        password: 'lCMErlPn1KgtvOb7VR5DEpP9WrLxATiT',
+        socket: {
+            host: 'redis-12417.c292.ap-southeast-1-1.ec2.cloud.redislabs.com',
+            port: 12417
+        }
+    });
 
-        // RedisLabs mengembalikan data dalam field .result
-        if (data && data.result) {
+    try {
+        await client.connect();
+        const data = await client.get(order_id);
+        await client.quit();
+
+        if (data) {
             return res.status(200).json({ 
                 status: 'sukses', 
-                akun: JSON.parse(data.result) 
+                akun: JSON.parse(data) 
             });
         }
         return res.status(200).json({ status: 'menunggu' });
     } catch (e) {
-        return res.status(500).json({ error: 'Gagal mengambil data' });
+        if (client.isOpen) await client.quit();
+        return res.status(500).json({ error: 'Gagal tarik data Redis' });
     }
 }
