@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
         // LOGIKA 1: TRIAL SINGAPORE VMESS (POTATO API)
         if (serverId === 'SGDO') {
-            vpsUrl = 'http://167.172.73.230/vps/trialvmess'; // Asumsi nama endpoint
+            vpsUrl = 'http://167.172.73.230/vps/trialvmessall'; // Asumsi nama endpoint
             fetchOptions = {
                 method: 'POST',
                 headers: {
