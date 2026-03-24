@@ -324,8 +324,8 @@ if (json.status === 'sukses') {
                 
                 const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
                 const u = json.akun.username || json.akun.user || "trial-auto";
-                const exp = json.akun.exp || json.akun.expired || "15 Menit";
-                
+                const exp = "15 Menit";
+
                 // Deteksi Link VMess
                 const linkTls = (json.akun.link && json.akun.link.tls) ? json.akun.link.tls : (json.akun.vmess_tls || "Link TLS tidak tersedia");
                 const linkNtls = (json.akun.link && json.akun.link.none) ? json.akun.link.none : (json.akun.vmess_ntls || "Link Non-TLS tidak tersedia");
