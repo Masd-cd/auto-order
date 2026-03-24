@@ -27,7 +27,7 @@ export default async function handler(req, res) {
                 }) 
             };
         } 
-        // LOGIKA 2: TRIAL INDONESIA (AGUNG API)
+                // LOGIKA 2: TRIAL INDONESIA (AGUNG API)
         else if (serverId === 'IDTECH') {
             vpsUrl = 'https://www.agung-store.my.id/api/trialssh';
             fetchOptions = {
@@ -37,7 +37,11 @@ export default async function handler(req, res) {
                     'x-api-key': process.env.AGUNG_API_KEY || '899e75f3d792d75954e05db23c76103809e084ebc0788a57a05f9d9dbe656aad'
                 },
                 body: JSON.stringify({
-                    server: "MASDVPN" // Catatan: Ganti jika nama server di panelmu bukan WIJAYA
+                    server: "masdvpn",
+                    // Kita selundupkan berbagai kemungkinan parameter angka 15
+                    timelimit: 15, 
+                    limit: 15,
+                    minutes: 15
                 }) 
             };
         }
