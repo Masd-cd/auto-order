@@ -3,267 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order VMess Premium</title>
+    <title>MasD VPNStore - Order VMess</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { background: #1e293b; border: 1px solid #334155; }
-        .hidden-screen { display: none; }
-        .show-screen { display: block; animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* BASE STYLE EXACT MATCH WEB TOOLS */
+        body { background-color: #0f172a; color: #f8fafc; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        
+        /* Animasi masuk */
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Screen Logic */
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        ::-webkit-scrollbar { display: none; }
+        #toast { visibility: hidden; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        #toast.show { visibility: visible; opacity: 1; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-4 md:p-8">
+<body class="font-sans antialiased min-h-screen flex justify-center p-4 pb-12">
 
-    <header class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-4">
-            <button onclick="window.location.href='index.html'" class="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+    <div class="w-full max-w-md space-y-4 relative">
+        
+        <div id="sub-header" class="flex items-center mb-6 pt-4 sticky top-0 bg-[#0f172a] z-10 pb-4 border-b border-[#334155]">
+            <button id="btn-back" onclick="goBack()" class="card hover:bg-[#334155] text-slate-300 px-3 py-2 rounded-xl text-xs font-bold mr-4 transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
             </button>
-            <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400" id="header-title">Membeli Akun VMess</h1>
+            <h2 id="header-title" class="text-xl font-bold text-slate-100 tracking-tight">Pilih Server</h2>
         </div>
-    </header>
 
-    <main class="max-w-md w-full mx-auto relative">
-
-        <div id="screen-form" class="show-screen space-y-6">
-            <div class="card p-5 rounded-3xl space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">1. Pilih Server</label>
-                    <select id="input-server" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none">
-                        <option value="SGDO">🇸🇬 Singapore DO (Potato)</option>
-                        <option value="IDTECH">🇮🇩 Indonesia Techno (Agung)</option>
-                    </select>
+        <div id="screen-server" class="screen active">
+            <div class="space-y-3">
+                <div class="card p-4 rounded-3xl flex items-center justify-between cursor-pointer transition hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.1)] group" onclick="pilihServer('SGDO', 'Singapore DO')">
+                    <div class="flex items-center">
+                        <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mr-4 group-hover:bg-[#1e293b] transition">🇸🇬</div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-100 mb-0.5">Singapore DO</h3>
+                            <p class="text-[11px] text-slate-400">Digital Ocean Premium</p>
+                        </div>
+                    </div>
+                    <span class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-md">Online</span>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">2. Durasi & Harga</label>
-                    <select id="input-durasi" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none">
-                        <option value="30|15000">30 Hari - Rp 15.000</option>
-                        <option value="60|30000">60 Hari - Rp 30.000</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">3. Username VMess</label>
-                    <input type="text" id="input-user" placeholder="Contoh: masdvpn" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:border-indigo-500 focus:outline-none">
+                <div class="card p-4 rounded-3xl flex items-center justify-between cursor-pointer transition hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.1)] group" onclick="pilihServer('IDTECH', 'Indonesia Techno')">
+                    <div class="flex items-center">
+                        <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mr-4 group-hover:bg-[#1e293b] transition">🇮🇩</div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-100 mb-0.5">Indonesia Techno</h3>
+                            <p class="text-[11px] text-slate-400">Premium Bandwidth</p>
+                        </div>
+                    </div>
+                    <span class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-md">Online</span>
                 </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="prosesTrial()" class="w-full py-4 rounded-2xl font-bold bg-slate-800 text-white hover:bg-slate-700 border border-slate-600 transition">Trial 15 Menit</button>
-                <button onclick="prosesCheckout()" class="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg hover:shadow-indigo-500/50 transition">Beli Premium</button>
-            </div>
         </div>
 
-        <div id="screen-loading" class="hidden-screen text-center py-20">
-            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500 mx-auto mb-6"></div>
-            <h2 class="text-xl font-bold mb-2">Memproses Pesanan</h2>
-            <p class="text-slate-400 text-sm" id="loading-text">Sedang menghubungi server...</p>
-        </div>
-
-        <div id="screen-qris" class="hidden-screen card p-6 rounded-3xl text-center">
-            <h2 class="text-xl font-bold text-white mb-2">Selesaikan Pembayaran</h2>
-            <p class="text-slate-400 text-sm mb-6">Scan QRIS ini menggunakan aplikasi DANA, GoPay, OVO, atau M-Banking.</p>
-            <div class="bg-white p-4 rounded-2xl inline-block mb-6" id="qrcode-container"></div>
-            <p class="text-lg font-bold text-indigo-400 mb-6" id="qris-amount">Rp 0</p>
-            <p class="text-xs text-slate-500 mb-4">Sistem akan mengecek pembayaran secara otomatis dalam <span id="countdown-timer">300</span> detik.</p>
-        </div>
-
-        <div id="screen-success" class="hidden-screen space-y-6">
-            <div class="card p-6 rounded-3xl border-emerald-500/30 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10">
-                    <svg class="w-24 h-24 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+        <div id="screen-type" class="screen">
+            <div class="space-y-3">
+                <div class="card p-4 rounded-3xl flex items-center cursor-pointer transition hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.1)] group" onclick="pilihTipe('premium')">
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 group-hover:bg-[#1e293b] transition">💎</div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100 mb-0.5">Premium Account</h3>
+                        <p class="text-[11px] text-slate-400">Buat akun berbayar (15/30 Hari)</p>
+                    </div>
                 </div>
                 
-                <h2 class="text-xl font-bold text-emerald-400 mb-6 flex items-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="card p-4 rounded-3xl flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] group" onclick="prosesTrial()">
+                    <div class="flex items-center">
+                        <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 text-emerald-400 group-hover:bg-[#1e293b] transition">⏱️</div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-100 mb-0.5">Trial 15 Menit</h3>
+                            <p class="text-[11px] text-slate-400">Langsung aktif (Auto Generate)</p>
+                        </div>
+                    </div>
+                    <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-md">Free</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-duration" class="screen">
+            <div class="space-y-3">
+                <div class="card p-4 rounded-3xl flex items-center cursor-pointer transition hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.1)] group" onclick="pilihDurasi('15', '5000')">
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 text-emerald-400 group-hover:bg-[#1e293b] transition">📅</div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100 mb-0.5">Paket 15 Hari</h3>
+                        <p class="text-[11px] text-slate-400">Harga: Rp 5.000</p>
+                    </div>
+                </div>
+                
+                <div class="card p-4 rounded-3xl flex items-center cursor-pointer transition hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.1)] group" onclick="pilihDurasi('30', '10000')">
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 text-cyan-400 group-hover:bg-[#1e293b] transition">🚀</div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100 mb-0.5">Paket 30 Hari</h3>
+                        <p class="text-[11px] text-slate-400">Harga: Rp 10.000</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-input" class="screen">
+            <div class="card p-5 rounded-3xl mb-6 border-cyan-500/20">
+                <p id="ringkasan-pesanan" class="text-xs text-slate-300 leading-relaxed font-medium">-</p>
+            </div>
+            
+            <div class="mb-5">
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Username Akun</label>
+                <input type="text" id="input-user" placeholder="Ketik username bebas" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-5 py-4 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition placeholder-slate-600">
+                <p class="text-[10px] text-slate-500 mt-2 pl-2">*VMess tidak membutuhkan password.</p>
+            </div>
+
+            <button onclick="prosesCheckout()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-2xl transition shadow-[0_0_15px_rgba(34,211,238,0.3)] mt-2">
+                Lanjut Pembayaran QRIS
+            </button>
+        </div>
+
+        <div id="screen-loading" class="screen">
+            <div class="text-center mt-16">
+                <div class="w-16 h-16 card rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse shadow-[0_0_20px_rgba(34,211,238,0.2)]">⚙️</div>
+                <h3 class="text-xl font-bold text-white mb-2 tracking-tight">Memproses Pesanan</h3>
+                <p class="text-sm text-cyan-400 animate-pulse font-medium">Sistem sedang memverifikasi pembayaran...</p>
+            </div>
+        </div>
+
+        <div id="screen-success" class="screen">
+            <div class="card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                <div class="flex items-center text-emerald-400 font-bold text-base mb-6 mt-1">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Akun VMess Terbuat
-                </h2>
-
+                </div>
+                
                 <div class="space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <span class="text-slate-400 text-sm">USERNAME</span>
-                        <span class="font-mono text-white" id="res-user">...</span>
+                    <div class="flex justify-between items-center pb-3 border-b border-[#334155]">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Username</span>
+                        <div class="flex items-center">
+                            <span id="res-user" class="text-sm font-bold text-slate-100 mr-3 font-mono">-</span>
+                            <button onclick="copyText('res-user')" class="bg-[#0f172a] border border-[#334155] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-[#334155] transition">Copy</button>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <span class="text-slate-400 text-sm">EXPIRED</span>
-                        <span class="font-mono text-yellow-400" id="res-exp">...</span>
+
+                    <div class="flex justify-between items-center pb-3 border-b border-[#334155]">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Host/IP</span>
+                        <div class="flex items-center">
+                            <span id="res-host" class="text-sm font-bold text-cyan-300 mr-3 font-mono">-</span>
+                            <button onclick="copyText('res-host')" class="bg-[#0f172a] border border-[#334155] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-[#334155] transition">Copy</button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pb-3 border-b border-[#334155]">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Expired</span>
+                        <span id="res-exp" class="text-sm font-bold text-yellow-400">-</span>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Device Limit</span>
+                        <span class="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-md">2 IP</span>
                     </div>
                 </div>
             </div>
 
-            <div class="card p-5 rounded-3xl">
+            <div class="card rounded-2xl p-4 mb-4 relative">
                 <div class="flex justify-between items-center mb-3">
-                    <span class="text-sm font-bold text-slate-300">Link VMess TLS (Port 443)</span>
-                    <button onclick="copyText('res-tls')" class="text-xs bg-slate-800 px-3 py-1 rounded-lg hover:bg-slate-700">COPY</button>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link VMess TLS (443)</span>
+                    <button onclick="copyText('fmt-tls')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
                 </div>
-                <div class="bg-slate-900 p-4 rounded-xl font-mono text-xs text-cyan-400 break-all" id="res-tls">...</div>
+                <div id="fmt-tls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-cyan-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
-            <div class="card p-5 rounded-3xl">
+            <div class="card rounded-2xl p-4 mb-6 relative">
                 <div class="flex justify-between items-center mb-3">
-                    <span class="text-sm font-bold text-slate-300">Link VMess Non-TLS (Port 80)</span>
-                    <button onclick="copyText('res-ntls')" class="text-xs bg-slate-800 px-3 py-1 rounded-lg hover:bg-slate-700">COPY</button>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link VMess Non-TLS (80)</span>
+                    <button onclick="copyText('fmt-ws')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
                 </div>
-                <div class="bg-slate-900 p-4 rounded-xl font-mono text-xs text-indigo-400 break-all" id="res-ntls">...</div>
+                <div id="fmt-ws" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-indigo-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
-            <button onclick="window.location.reload()" class="w-full py-4 rounded-2xl font-bold bg-slate-800 text-white hover:bg-slate-700 transition">Kembali ke Menu Utama</button>
+            <a href="index.html" class="block text-center w-full card border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-4 rounded-2xl transition mt-2 text-sm">
+                Kembali ke Menu Utama
+            </a>
         </div>
 
-    </main>
+    </div>
 
-    <div id="toast-copy" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-6 py-3 rounded-full shadow-lg font-bold text-sm hidden-screen">Berhasil Disalin!</div>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-cyan-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-[0_0_20px_rgba(34,211,238,0.4)] z-50 flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        Berhasil disalin!
+    </div>
 
-    <script>
-        function showScreen(id, title = null) {
-            document.querySelectorAll('.show-screen').forEach(el => {
-                el.classList.remove('show-screen');
-                el.classList.add('hidden-screen');
-            });
-            document.getElementById(id).classList.remove('hidden-screen');
-            document.getElementById(id).classList.add('show-screen');
-            if (title) document.getElementById('header-title').innerText = title;
+<script>
+    // Data Default
+    let order = { protocol: 'VMESS', serverId: '', serverName: '', duration: '', price: '' };
+    
+    // History dimulai dari screen-server
+    let historyStack = ['screen-server'];
+
+    function showScreen(screenId, title) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+
+        const btnBack = document.getElementById('btn-back');
+        document.getElementById('header-title').innerText = title;
+
+        if (screenId === 'screen-loading' || screenId === 'screen-success') {
+            btnBack.classList.add('hidden');
+        } else {
+            btnBack.classList.remove('hidden');
         }
+    }
 
-        function copyText(elementId) {
-            const text = document.getElementById(elementId).innerText;
-            navigator.clipboard.writeText(text);
-            const toast = document.getElementById('toast-copy');
-            toast.classList.remove('hidden-screen');
-            toast.classList.add('show-screen');
-            setTimeout(() => { toast.classList.remove('show-screen'); toast.classList.add('hidden-screen'); }, 2000);
+    function goBack() {
+        if(historyStack.length > 1) {
+            historyStack.pop();
+            const prevScreen = historyStack[historyStack.length - 1];
+            
+            let title = "Pilih Server";
+            if(prevScreen === 'screen-type') title = "Tipe Layanan";
+            if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            
+            showScreen(prevScreen, title);
+        } else {
+            window.location.href = 'index.html';
         }
+    }
 
-        // ==========================================
-        // PROSES TRIAL VMESS
-        // ==========================================
-        async function prosesTrial() {
-            const server = document.getElementById('input-server').value;
-            showScreen('screen-loading', 'Memproses Trial');
-            document.getElementById('loading-text').innerText = 'Membuat akun trial VMess...';
+    // Fungsi Lanjutan
+    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
+    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
+    
+    function pilihDurasi(durasi, harga) {
+        order.duration = durasi; order.price = harga;
+        document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">VMess Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-cyan-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
+        historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
+    }
 
+    function prosesCheckout() {
+        const user = document.getElementById('input-user').value.trim();
+
+        if (!user) return alert("Username wajib diisi!");
+        if (user.includes('-')) return alert("Username jangan pakai tanda strip (-) ya!");
+
+        const slug = "masd";
+        // Order ID menggunakan dummy password '123' agar webhook tetap membacanya sebagai 5 bagian
+        const orderId = `VMESS-${order.serverId}-${order.duration}-${user}-123-${Date.now()}`;
+        
+        window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
+        showScreen('screen-loading', 'Membangun Server');
+
+        let cek = setInterval(async () => {
             try {
-                const response = await fetch('/api/buat_trial_vmess', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ serverId: server })
-                });
-                
+                const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
                 const json = await response.json();
 
                 if (json.status === 'sukses') {
-                    showScreen('screen-success', 'Detail Trial VMess');
+                    clearInterval(cek);
+                    showScreen('screen-success', 'Informasi Akun VMess');
                     
-                    const u = json.akun.username || "trial-auto";
-                    const exp = json.akun.expired || json.akun.exp || "15 Menit";
+                    const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                    const resUser = json.akun.username || json.akun.user || user;
+                    const resExp = json.akun.exp || json.akun.expired || order.duration + " Hari";
                     
-                    // Deteksi link dari respon Potato / Agung
+                    // Deteksi Link VMess
                     const linkTls = (json.akun.link && json.akun.link.tls) ? json.akun.link.tls : (json.akun.vmess_tls || "Link TLS tidak tersedia");
                     const linkNtls = (json.akun.link && json.akun.link.none) ? json.akun.link.none : (json.akun.vmess_ntls || "Link Non-TLS tidak tersedia");
-
-                    document.getElementById('res-user').innerText = u;
-                    document.getElementById('res-exp').innerText = exp;
-                    document.getElementById('res-tls').innerText = linkTls;
-                    document.getElementById('res-ntls').innerText = linkNtls;
-                } else {
-                    alert("Gagal membuat trial: " + (json.alasan || "Unknown Error"));
-                    window.location.reload();
-                }
-            } catch (e) {
-                alert("Terjadi kesalahan koneksi.");
-                window.location.reload();
-            }
-        }
-
-        // ==========================================
-        // PROSES PREMIUM VMESS (PAKASIR)
-        // ==========================================
-        let checkInterval;
-        async function prosesCheckout() {
-            const server = document.getElementById('input-server').value;
-            const durasiRaw = document.getElementById('input-durasi').value;
-            const durasiHari = durasiRaw.split('|')[0];
-            const harga = durasiRaw.split('|')[1];
-            let user = document.getElementById('input-user').value.trim();
-
-            if (!user) { alert("Username tidak boleh kosong!"); return; }
-            if (user.includes('-')) { alert("Username jangan pakai tanda strip (-) ya!"); return; }
-
-            // Order ID diubah depannya jadi VMESS. Angka 123 adalah dummy password agar format 5 potong tetap jalan di webhook
-            const orderId = `VMESS-${server}-${durasiHari}-${user}-123`;
-
-            showScreen('screen-loading', 'Membuat Tagihan');
-
-            try {
-                const resQris = await fetch('https://api.pakasir.com/v1/qris', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        apikey: '6BDB7A-0C020F-CD8372-5C29EF', 
-                        amount: harga,
-                        order_id: orderId
-                    })
-                });
-
-                const dataQris = await resQris.json();
-                
-                if (dataQris.status === 'success') {
-                    showScreen('screen-qris', 'Pembayaran');
-                    document.getElementById('qris-amount').innerText = `Rp ${parseInt(harga).toLocaleString('id-ID')}`;
                     
-                    document.getElementById('qrcode-container').innerHTML = '';
-                    new QRCode(document.getElementById('qrcode-container'), {
-                        text: dataQris.qris_string,
-                        width: 200,
-                        height: 200
-                    });
+                    document.getElementById('res-user').innerText = resUser;
+                    document.getElementById('res-host').innerText = domain;
+                    document.getElementById('res-exp').innerText = resExp;
 
-                    // Timer 5 Menit & Pengecekan Redis
-                    let waktu = 300;
-                    checkInterval = setInterval(async () => {
-                        waktu--;
-                        document.getElementById('countdown-timer').innerText = waktu;
-                        if (waktu <= 0) {
-                            clearInterval(checkInterval);
-                            alert("Waktu habis! Silakan order ulang.");
-                            window.location.reload();
-                        }
-
-                        // Cek Redis
-                        const resCek = await fetch(`/api/cek_akun?order_id=${orderId}`);
-                        const dataCek = await resCek.json();
-
-                        if (dataCek.status === 'sukses') {
-                            clearInterval(checkInterval);
-                            showScreen('screen-success', 'Detail VMess Premium');
-                            
-                            const u = dataCek.data.username || user;
-                            const exp = dataCek.data.expired || durasiHari + " Hari";
-                            
-                            // Deteksi link dari respon Potato / Agung
-                            const linkTls = (dataCek.data.link && dataCek.data.link.tls) ? dataCek.data.link.tls : (dataCek.data.vmess_tls || JSON.stringify(dataCek.data));
-                            const linkNtls = (dataCek.data.link && dataCek.data.link.none) ? dataCek.data.link.none : (dataCek.data.vmess_ntls || "Lihat di TLS");
-
-                            document.getElementById('res-user').innerText = u;
-                            document.getElementById('res-exp').innerText = exp;
-                            document.getElementById('res-tls').innerText = linkTls;
-                            document.getElementById('res-ntls').innerText = linkNtls;
-                        }
-                    }, 5000); // Cek setiap 5 detik
-
-                } else {
-                    alert("Gagal membuat QRIS.");
-                    window.location.reload();
+                    document.getElementById('fmt-tls').innerText = linkTls;
+                    document.getElementById('fmt-ws').innerText = linkNtls;
                 }
-            } catch (e) {
-                alert("Error koneksi ke server pembayaran.");
-                window.location.reload();
+            } catch (e) { console.log("Menunggu validasi QRIS..."); }
+        }, 3000);
+    }
+
+    function copyText(elementId) {
+        let textToCopy = document.getElementById(elementId).innerText; 
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const toast = document.getElementById("toast");
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 2000);
+        });
+    }
+
+    async function prosesTrial() {
+        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        showScreen('screen-loading', 'Membuat Akun Trial');
+
+        try {
+            // Tembak file api/buat_trial_vmess.js untuk Trial VMess
+            const response = await fetch('/api/buat_trial_vmess', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ serverId: order.serverId })
+            });
+            
+            const json = await response.json();
+
+            if (json.status === 'sukses') {
+                showScreen('screen-success', 'Informasi Akun VMess');
+                
+                const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                const u = json.akun.username || json.akun.user || "trial-auto";
+                const exp = json.akun.exp || json.akun.expired || "15 Menit";
+                
+                // Deteksi Link VMess
+                const linkTls = (json.akun.link && json.akun.link.tls) ? json.akun.link.tls : (json.akun.vmess_tls || "Link TLS tidak tersedia");
+                const linkNtls = (json.akun.link && json.akun.link.none) ? json.akun.link.none : (json.akun.vmess_ntls || "Link Non-TLS tidak tersedia");
+                
+                document.getElementById('res-user').innerText = u;
+                document.getElementById('res-host').innerText = domain;
+                document.getElementById('res-exp').innerText = exp;
+
+                document.getElementById('fmt-tls').innerText = linkTls;
+                document.getElementById('fmt-ws').innerText = linkNtls;
+            } else {
+                alert("Info dari VPS: " + (json.alasan || json.error || "Gagal membuat trial."));
+                goBack();
             }
+        } catch (e) { 
+            alert("Terjadi kesalahan koneksi.");
+            goBack();
         }
-    </script>
+    }
+</script>
 </body>
 </html>
