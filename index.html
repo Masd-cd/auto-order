@@ -75,13 +75,12 @@
         </div>
     </div>
 
-    <div id="screen-server" class="screen">
+        <div id="screen-server" class="screen">
         <div class="card" onclick="pilihServer('SG-DO', 'SG Digital Ocean')">
             <div class="card-icon">🇸🇬</div>
             <div class="card-content">
                 <h3>SG Digital Ocean</h3>
-                <p>Singapura • 167.172.73.230</p>
-            </div>
+                <p>Singapura • Premium Server</p> </div>
             <div class="badge">Online</div>
         </div>
         <div class="card" onclick="pilihServer('ID-TECH', 'ID Techno')">
@@ -267,7 +266,7 @@
                     
                     document.getElementById('res-user').innerText = json.akun.username;
                     document.getElementById('res-pass').innerText = json.akun.password;
-                    document.getElementById('res-host').innerText = json.akun.hostname || "167.172.73.230";
+                    document.getElementById('res-host').innerText = json.akun.hostname || "sg.masdvpnstore.web.id";
                     document.getElementById('res-exp').innerText = json.akun.exp;
                     document.getElementById('res-proto').innerText = order.protocol;
                 }
