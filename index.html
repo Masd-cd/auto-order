@@ -5,242 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MasD VPNStore - Premium Tools</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* BASE STYLE DARI WEB TOOLS MASD */
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        /* BASE STYLE EXACT MATCH WEB TOOLS */
+        body { background-color: #0f172a; color: #f8fafc; }
         .card { background-color: #1e293b; border: 1px solid #334155; }
-        .icon-box { background-color: #0f172a; border: 1px solid #334155; }
         
         /* Animasi masuk tetap kita pertahankan biar elegan */
-        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Logic Screen */
+        /* Screen Logic */
         .screen { display: none; }
-        .screen.active { display: block; animation: fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-        
-        /* Sembunyikan Scrollbar biar clean seperti App */
+        .screen.active { display: block; animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        /* Sembunyikan scrollbar agar clean */
         ::-webkit-scrollbar { display: none; }
 
         /* Toast Notifikasi */
-        #toast { visibility: hidden; transition: opacity 0.3s; }
+        #toast { visibility: hidden; opacity: 0; transition: opacity 0.3s ease-in-out; }
         #toast.show { visibility: visible; opacity: 1; }
     </style>
 </head>
-<body class="antialiased pb-10">
+<body class="font-sans antialiased min-h-screen flex justify-center p-4 pb-12">
 
-<div class="max-w-md mx-auto relative min-h-screen">
-    
-    <div id="store-title" class="flex flex-col items-center justify-center pt-12 pb-6 fade-in-up">
-        <div class="w-14 h-14 card rounded-2xl flex items-center justify-center text-3xl mb-4 text-indigo-400 shadow-lg shadow-indigo-500/10">⚡</div>
-        <h1 class="text-3xl font-extrabold tracking-tight"><span class="text-indigo-400">MasD</span> <span class="text-cyan-400">VPNStore</span></h1>
-        <p class="text-slate-400 text-sm mt-2 font-medium">Premium Tunneling Automations System</p>
-    </div>
-
-    <div id="sub-header" class="hidden items-center p-5 border-b border-slate-800 sticky top-0 bg-[#0f172a] z-10">
-        <button id="btn-back" onclick="goBack()" class="icon-box text-slate-300 px-4 py-2 rounded-xl text-xs font-bold mr-4 hover:bg-slate-800 transition">Kembali</button>
-        <h2 id="header-title" class="text-lg font-bold text-white">Title</h2>
-    </div>
-
-    <div id="screen-protocol" class="screen active px-5">
-        <span class="block text-lg font-bold text-white mb-4 mt-2">Pilih Layanan</span>
-        <div class="grid grid-cols-2 gap-4">
-            
-            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-indigo-500/50" onclick="pilihProtokol('SSH')">
-                <span class="absolute top-4 right-4 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-2 py-1 rounded-lg">Online</span>
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-yellow-400 mb-4 shadow-inner">⚡</div>
-                <h3 class="font-bold text-[15px] mb-1 text-slate-100">SSH</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">Custom Routing</p>
-            </div>
-
-            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-slate-500/50" onclick="alert('Layanan VMess belum aktif.')">
-                <span class="absolute top-4 right-4 icon-box text-slate-500 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-cyan-500 mb-4 shadow-inner">🌀</div>
-                <h3 class="font-bold text-[15px] mb-1 text-slate-100">VMess</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">Standard V2Ray</p>
-            </div>
-
-            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-slate-500/50" onclick="alert('Layanan VLESS belum aktif.')">
-                <span class="absolute top-4 right-4 icon-box text-slate-500 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-blue-400 mb-4 shadow-inner">🛡️</div>
-                <h3 class="font-bold text-[15px] mb-1 text-slate-100">VLESS</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">Light V2Ray</p>
-            </div>
-
-            <div class="card rounded-2xl p-5 cursor-pointer relative transition hover:-translate-y-1 hover:border-slate-500/50" onclick="alert('Layanan Trojan belum aktif.')">
-                <span class="absolute top-4 right-4 icon-box text-slate-500 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-orange-400 mb-4 shadow-inner">🐎</div>
-                <h3 class="font-bold text-[15px] mb-1 text-slate-100">Trojan</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">Bypass SNI</p>
-            </div>
-
-        </div>
-        <div class="text-center mt-8 text-xs text-slate-500">Built with MasD Auto System</div>
-    </div>
-
-    <div id="screen-server" class="screen px-5">
-        <div class="flex flex-col gap-4">
-            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihServer('SG-DO', 'Singapore DO')">
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 shrink-0">🇸🇬</div>
-                <div class="flex-1">
-                    <h3 class="font-bold text-sm text-slate-100 mb-1">Singapore DO</h3>
-                    <p class="text-xs text-slate-400">Digital Ocean Premium</p>
-                </div>
-                <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-2 py-1 rounded-lg">Online</span>
-            </div>
-
-            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihServer('ID-TECH', 'Indonesia Techno')">
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 shrink-0">🇮🇩</div>
-                <div class="flex-1">
-                    <h3 class="font-bold text-sm text-slate-100 mb-1">Indonesia Techno</h3>
-                    <p class="text-xs text-slate-400">Premium Bandwidth</p>
-                </div>
-                <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold px-2 py-1 rounded-lg">Online</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-type" class="screen px-5">
-        <div class="flex flex-col gap-4">
-            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihTipe('premium')">
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0">💎</div>
-                <div class="flex-1">
-                    <h3 class="font-bold text-sm text-slate-100 mb-1">Premium Account</h3>
-                    <p class="text-xs text-slate-400">Buat akun berbayar (15/30 Hari)</p>
-                </div>
-            </div>
-            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-slate-500/50 opacity-70" onclick="alert('Trial 15 Menit segera hadir!')">
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0 text-slate-400">⏱️</div>
-                <div class="flex-1">
-                    <h3 class="font-bold text-sm text-slate-100 mb-1">Trial 15 Menit</h3>
-                    <p class="text-xs text-slate-400">Coba jaringan gratis</p>
-                </div>
-                <span class="icon-box text-slate-400 text-[10px] font-bold px-2 py-1 rounded-lg">Segera</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-duration" class="screen px-5">
-        <div class="flex flex-col gap-4">
-            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihDurasi('15', '5000')">
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0">📅</div>
-                <div class="flex-1">
-                    <h3 class="font-bold text-sm text-slate-100 mb-1">Paket 15 Hari</h3>
-                    <p class="text-xs text-slate-400">Rp 5.000</p>
-                </div>
-            </div>
-            <div class="card rounded-2xl p-4 flex items-center cursor-pointer transition hover:border-indigo-500/50" onclick="pilihDurasi('30', '10000')">
-                <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center text-xl mr-4 shrink-0">🚀</div>
-                <div class="flex-1">
-                    <h3 class="font-bold text-sm text-slate-100 mb-1">Paket 30 Hari</h3>
-                    <p class="text-xs text-slate-400">Rp 10.000</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-input" class="screen px-5">
-        <div class="card rounded-2xl p-4 mb-6">
-            <p id="ringkasan-pesanan" class="text-xs text-slate-300 leading-relaxed font-medium">-</p>
-        </div>
+    <div class="w-full max-w-md space-y-4 mt-4 relative">
         
-        <div class="mb-5">
-            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Username</label>
-            <input type="text" id="input-user" placeholder="Masukkan username" class="w-full bg-[#0f172a] border border-slate-700 text-slate-100 text-sm rounded-xl px-4 py-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition">
-        </div>
-        
-        <div class="mb-6">
-            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Password</label>
-            <input type="text" id="input-pass" placeholder="Masukkan password" class="w-full bg-[#0f172a] border border-slate-700 text-slate-100 text-sm rounded-xl px-4 py-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition">
-        </div>
-
-        <button onclick="prosesCheckout()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-indigo-500/20">
-            Lanjut Pembayaran
-        </button>
-    </div>
-
-    <div id="screen-loading" class="screen px-5">
-        <div class="text-center mt-16">
-            <div class="w-16 h-16 card border border-indigo-500/30 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse shadow-lg shadow-indigo-500/20">⚙️</div>
-            <h3 class="text-xl font-bold text-white mb-2">Memproses Order</h3>
-            <p class="text-sm text-indigo-400 animate-pulse font-medium">Sistem sedang memverifikasi...</p>
-        </div>
-    </div>
-
-    <div id="screen-success" class="screen px-5">
-        <div class="card rounded-3xl p-6 mb-5 shadow-lg">
-            <div class="flex items-center text-emerald-400 font-bold text-lg mb-6">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Transaksi Sukses
+        <div id="store-title" class="flex flex-col items-center justify-center mb-8 mt-4 fade-in-up">
+            <div class="bg-indigo-600/20 p-3 rounded-2xl border border-indigo-500/30 mb-4 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
             </div>
-            
-            <div class="space-y-4">
-                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
-                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Username</span>
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 tracking-tight">MasD VPNStore</h1>
+            <p class="text-slate-400 text-sm mt-2 font-medium tracking-wide">Premium Tunneling Automations</p>
+        </div>
+
+        <div id="sub-header" class="hidden items-center mb-6 pt-2">
+            <button onclick="goBack()" class="card hover:bg-[#334155] text-slate-300 px-3 py-2 rounded-xl text-xs font-bold mr-4 transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <h2 id="header-title" class="text-xl font-bold text-slate-100 tracking-tight">Title</h2>
+        </div>
+
+        <div id="screen-protocol" class="screen active">
+            <h2 class="text-lg font-bold text-slate-100 mb-4">Pilih Layanan</h2>
+            <div class="grid grid-cols-2 gap-4">
+                
+                <div class="card p-4 rounded-3xl cursor-pointer transition hover:border-indigo-500/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.15)] relative group" onclick="pilihProtokol('SSH')">
+                    <span class="absolute top-3 right-3 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md">Online</span>
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-yellow-400 mb-3 group-hover:bg-[#1e293b] transition">⚡</div>
+                    <h3 class="font-bold text-[15px] text-slate-100 mb-1">SSH</h3>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Custom Routing</p>
+                </div>
+
+                <div class="card p-4 rounded-3xl cursor-pointer transition relative opacity-80" onclick="alert('Layanan VMess segera hadir!')">
+                    <span class="absolute top-3 right-3 bg-[#0f172a] text-slate-500 border border-[#334155] text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md">Segera</span>
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-cyan-400 mb-3">🌀</div>
+                    <h3 class="font-bold text-[15px] text-slate-100 mb-1">VMess</h3>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Standard V2Ray</p>
+                </div>
+
+                <div class="card p-4 rounded-3xl cursor-pointer transition relative opacity-80" onclick="alert('Layanan VLESS segera hadir!')">
+                    <span class="absolute top-3 right-3 bg-[#0f172a] text-slate-500 border border-[#334155] text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md">Segera</span>
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-blue-400 mb-3">🛡️</div>
+                    <h3 class="font-bold text-[15px] text-slate-100 mb-1">VLESS</h3>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Light V2Ray</p>
+                </div>
+
+                <div class="card p-4 rounded-3xl cursor-pointer transition relative opacity-80" onclick="alert('Layanan Trojan segera hadir!')">
+                    <span class="absolute top-3 right-3 bg-[#0f172a] text-slate-500 border border-[#334155] text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md">Segera</span>
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-orange-400 mb-3">🐎</div>
+                    <h3 class="font-bold text-[15px] text-slate-100 mb-1">Trojan</h3>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Bypass SNI</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="screen-server" class="screen">
+            <div class="space-y-3">
+                <div class="card p-4 rounded-3xl flex items-center justify-between cursor-pointer transition hover:border-indigo-500/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.1)] group" onclick="pilihServer('SG-DO', 'Singapore DO')">
                     <div class="flex items-center">
-                        <span id="res-user" class="text-sm font-bold text-white mr-3 font-mono">-</span>
-                        <button onclick="copyText('res-user')" class="icon-box px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-700 transition">Copy</button>
+                        <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mr-4 group-hover:bg-[#1e293b] transition">🇸🇬</div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-100 mb-0.5">Singapore DO</h3>
+                            <p class="text-[11px] text-slate-400">Digital Ocean Premium</p>
+                        </div>
+                    </div>
+                    <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-md">Online</span>
+                </div>
+
+                <div class="card p-4 rounded-3xl flex items-center justify-between cursor-pointer transition hover:border-indigo-500/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.1)] group" onclick="pilihServer('ID-TECH', 'Indonesia Techno')">
+                    <div class="flex items-center">
+                        <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mr-4 group-hover:bg-[#1e293b] transition">🇮🇩</div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-100 mb-0.5">Indonesia Techno</h3>
+                            <p class="text-[11px] text-slate-400">Premium Bandwidth</p>
+                        </div>
+                    </div>
+                    <span class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-md">Online</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-type" class="screen">
+            <div class="space-y-3">
+                <div class="card p-4 rounded-3xl flex items-center cursor-pointer transition hover:border-indigo-500/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.1)] group" onclick="pilihTipe('premium')">
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 group-hover:bg-[#1e293b] transition">💎</div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100 mb-0.5">Premium Account</h3>
+                        <p class="text-[11px] text-slate-400">Buat akun berbayar (15/30 Hari)</p>
                     </div>
                 </div>
                 
-                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
-                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Password</span>
+                <div class="card p-4 rounded-3xl flex items-center justify-between cursor-pointer transition opacity-80" onclick="alert('Trial 15 Menit segera hadir!')">
                     <div class="flex items-center">
-                        <span id="res-pass" class="text-sm font-bold text-white mr-3 font-mono">-</span>
-                        <button onclick="copyText('res-pass')" class="icon-box px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-700 transition">Copy</button>
+                        <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 text-slate-500">⏱️</div>
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-300 mb-0.5">Trial 15 Menit</h3>
+                            <p class="text-[11px] text-slate-500">Coba jaringan gratis</p>
+                        </div>
+                    </div>
+                    <span class="bg-[#0f172a] text-slate-500 border border-[#334155] text-[9px] uppercase tracking-widest font-bold px-2 py-1 rounded-md">Segera</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-duration" class="screen">
+            <div class="space-y-3">
+                <div class="card p-4 rounded-3xl flex items-center cursor-pointer transition hover:border-indigo-500/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.1)] group" onclick="pilihDurasi('15', '5000')">
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 text-emerald-400 group-hover:bg-[#1e293b] transition">📅</div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100 mb-0.5">Paket 15 Hari</h3>
+                        <p class="text-[11px] text-slate-400">Harga: Rp 5.000</p>
                     </div>
                 </div>
-
-                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
-                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Host/IP</span>
-                    <div class="flex items-center">
-                        <span id="res-host" class="text-sm font-bold text-white mr-3 font-mono">-</span>
-                        <button onclick="copyText('res-host')" class="icon-box px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-700 transition">Copy</button>
+                
+                <div class="card p-4 rounded-3xl flex items-center cursor-pointer transition hover:border-indigo-500/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.1)] group" onclick="pilihDurasi('30', '10000')">
+                    <div class="bg-[#0f172a] border border-[#334155] w-12 h-12 rounded-2xl flex items-center justify-center text-xl mr-4 text-indigo-400 group-hover:bg-[#1e293b] transition">🚀</div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-100 mb-0.5">Paket 30 Hari</h3>
+                        <p class="text-[11px] text-slate-400">Harga: Rp 10.000</p>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="flex justify-between items-center pb-3 border-b border-slate-700/50">
-                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Expired</span>
-                    <span id="res-exp" class="text-sm font-bold text-yellow-400">-</span>
+        <div id="screen-input" class="screen">
+            <div class="card p-5 rounded-3xl mb-6">
+                <p id="ringkasan-pesanan" class="text-xs text-slate-300 leading-relaxed font-medium">-</p>
+            </div>
+            
+            <div class="mb-5">
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Username Akun</label>
+                <input type="text" id="input-user" placeholder="Ketik username" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-5 py-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Password Akun</label>
+                <input type="text" id="input-pass" placeholder="Ketik password" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-5 py-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+
+            <button onclick="prosesCheckout()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-2xl transition shadow-[0_0_15px_rgba(79,70,229,0.4)] mt-2">
+                Lanjut Pembayaran
+            </button>
+        </div>
+
+        <div id="screen-loading" class="screen">
+            <div class="text-center mt-12">
+                <div class="w-16 h-16 card rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse shadow-[0_0_20px_rgba(99,102,241,0.2)]">⚙️</div>
+                <h3 class="text-xl font-bold text-white mb-2 tracking-tight">Memproses Pesanan</h3>
+                <p class="text-sm text-indigo-400 animate-pulse font-medium">Menunggu verifikasi pembayaran...</p>
+            </div>
+        </div>
+
+        <div id="screen-success" class="screen">
+            <div class="card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                <div class="flex items-center text-emerald-400 font-bold text-base mb-6 mt-1">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Transaksi Sukses
                 </div>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center pb-3 border-b border-[#334155]">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Username</span>
+                        <div class="flex items-center">
+                            <span id="res-user" class="text-sm font-bold text-slate-100 mr-3 font-mono">-</span>
+                            <button onclick="copyText('res-user')" class="bg-[#0f172a] border border-[#334155] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-[#334155] transition">Copy</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center pb-3 border-b border-[#334155]">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Password</span>
+                        <div class="flex items-center">
+                            <span id="res-pass" class="text-sm font-bold text-slate-100 mr-3 font-mono">-</span>
+                            <button onclick="copyText('res-pass')" class="bg-[#0f172a] border border-[#334155] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-[#334155] transition">Copy</button>
+                        </div>
+                    </div>
 
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Limit Device</span>
-                    <span class="text-sm font-bold text-white">2 IP</span>
+                    <div class="flex justify-between items-center pb-3 border-b border-[#334155]">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Host/IP</span>
+                        <div class="flex items-center">
+                            <span id="res-host" class="text-sm font-bold text-indigo-300 mr-3 font-mono">-</span>
+                            <button onclick="copyText('res-host')" class="bg-[#0f172a] border border-[#334155] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-[#334155] transition">Copy</button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pb-3 border-b border-[#334155]">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Expired</span>
+                        <span id="res-exp" class="text-sm font-bold text-yellow-400">-</span>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Device</span>
+                        <span class="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-md">2 IP Limit</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="icon-box rounded-2xl p-4 mb-4 relative">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Format WS (Port 80)</span>
-                <button onclick="copyText('fmt-ws')" class="bg-slate-800 text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-slate-700">COPY</button>
+            <div class="card rounded-2xl p-4 mb-4 relative">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">WS Payload (Port 80)</span>
+                    <button onclick="copyText('fmt-ws')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
+                </div>
+                <div id="fmt-ws" class="bg-[#0f172a] p-3 rounded-xl font-mono text-xs text-cyan-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
-            <div id="fmt-ws" class="font-mono text-xs text-cyan-400 break-all leading-relaxed">-</div>
-        </div>
 
-        <div class="icon-box rounded-2xl p-4 mb-6 relative">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Format TLS (Port 443)</span>
-                <button onclick="copyText('fmt-tls')" class="bg-slate-800 text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-slate-700">COPY</button>
+            <div class="card rounded-2xl p-4 mb-6 relative">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TLS Payload (Port 443)</span>
+                    <button onclick="copyText('fmt-tls')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
+                </div>
+                <div id="fmt-tls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-xs text-cyan-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
-            <div id="fmt-tls" class="font-mono text-xs text-cyan-400 break-all leading-relaxed">-</div>
+
+            <button onclick="location.reload()" class="w-full card border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-4 rounded-2xl transition mt-2 text-sm">
+                Kembali ke Beranda
+            </button>
         </div>
 
-        <button onclick="location.reload()" class="w-full icon-box hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition">
-            Kembali ke Beranda
-        </button>
     </div>
 
-</div>
-
-<div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-indigo-500 text-white px-6 py-3 rounded-full font-bold text-sm shadow-xl shadow-indigo-500/30 opacity-0 z-50">
-    Berhasil disalin!
-</div>
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-[0_0_20px_rgba(79,70,229,0.4)] z-50 flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        Berhasil disalin!
+    </div>
 
 <script>
     let order = { protocol: '', serverId: '', serverName: '', duration: '', price: '' };
@@ -252,7 +263,6 @@
 
         const storeTitle = document.getElementById('store-title');
         const subHeader = document.getElementById('sub-header');
-        const btnBack = document.getElementById('btn-back');
 
         if(screenId === 'screen-protocol') {
             storeTitle.classList.remove('hidden');
@@ -264,14 +274,14 @@
             storeTitle.classList.remove('flex');
             subHeader.classList.remove('hidden');
             subHeader.classList.add('flex');
-            btnBack.classList.add('hidden');
+            document.getElementById('btn-back').classList.add('hidden');
             document.getElementById('header-title').innerText = title;
         } else {
             storeTitle.classList.add('hidden');
             storeTitle.classList.remove('flex');
             subHeader.classList.remove('hidden');
             subHeader.classList.add('flex');
-            btnBack.classList.remove('hidden');
+            document.getElementById('btn-back').classList.remove('hidden');
             document.getElementById('header-title').innerText = title;
         }
     }
@@ -282,8 +292,8 @@
             const prevScreen = historyStack[historyStack.length - 1];
             
             let title = "";
-            if(prevScreen === 'screen-server') title = "Pilih Server";
-            if(prevScreen === 'screen-type') title = "Pilih Layanan";
+            if(prevScreen === 'screen-server') title = "Pilih Region";
+            if(prevScreen === 'screen-type') title = "Tipe Layanan";
             if(prevScreen === 'screen-duration') title = "Pilih Paket";
             
             showScreen(prevScreen, title);
@@ -296,7 +306,7 @@
     
     function pilihDurasi(durasi, harga) {
         order.duration = durasi; order.price = harga;
-        document.getElementById('ringkasan-pesanan').innerHTML = `Server: <b class="text-white">${order.serverName}</b><br>Durasi: <b class="text-white">${order.duration} Hari</b><br>Tagihan: <b class="text-indigo-400">Rp ${parseInt(harga).toLocaleString('id-ID')}</b>`;
+        document.getElementById('ringkasan-pesanan').innerHTML = `Layanan: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-indigo-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
@@ -304,13 +314,13 @@
         const user = document.getElementById('input-user').value.trim();
         const pass = document.getElementById('input-pass').value.trim();
 
-        if (!user || !pass) return alert("Username dan Password wajib diisi!");
+        if (!user || !pass) return alert("Data Username dan Password wajib diisi!");
 
         const slug = "masd";
         const orderId = `SSH-${order.serverId}-${order.duration}-${user}-${pass}-${Date.now()}`;
         
         window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
-        showScreen('screen-loading', 'Memproses Order');
+        showScreen('screen-loading', 'Deploying Server');
 
         let cek = setInterval(async () => {
             try {
@@ -319,7 +329,7 @@
 
                 if (json.status === 'sukses') {
                     clearInterval(cek);
-                    showScreen('screen-success', 'Detail Akun');
+                    showScreen('screen-success', 'Informasi Akun');
                     
                     const domain = json.akun.hostname || "sg.masdvpnstore.web.id";
                     const u = json.akun.username;
@@ -333,7 +343,7 @@
                     document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
                     document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
                 }
-            } catch (e) { console.log("Menunggu pembayaran..."); }
+            } catch (e) { console.log("Menunggu pembayaran lunas..."); }
         }, 3000);
     }
 
