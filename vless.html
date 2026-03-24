@@ -162,6 +162,7 @@
                     document.getElementById('res-host').innerText = akun.hostname || akun.host || "masdvpnstore.web.id";
                     document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
                     document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || "Cek di Panel";
+                    document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || "Cek di Panel";
                 }
             } catch (e) {}
         }, 3000);
@@ -179,6 +180,7 @@
                 document.getElementById('res-host').innerText = akun.hostname || akun.host || "masdvpnstore.web.id";
                 document.getElementById('res-exp').innerText = "15 Menit";
                 document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || "Cek Manual";
+                document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || "Cek Manual";
             } else { alert("Gagal: " + (json.alasan || "Server Sibuk")); goBack(); }
         } catch (e) { alert("Error Koneksi"); goBack(); }
     }
