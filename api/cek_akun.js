@@ -1,26 +1,25 @@
 export default async function handler(req, res) {
     const orderId = req.query.order_id;
-    const kvUrl = process.env.KV_REST_API_URL;
-    const kvToken = process.env.KV_REST_API_TOKEN;
+    const redisUrl = process.env.masdvpnstore_REDIS_URL;
 
-    if (!kvUrl || !kvToken) return res.status(500).json({ error: 'Database Config Missing' });
+    if (!redisUrl) return res.status(500).json({ error: 'Config Missing' });
 
     try {
-        const response = await fetch(`${kvUrl}/get/${orderId}`, {
-            headers: { 'Authorization': `Bearer ${kvToken}` }
+        // Mengambil data dari Redis Labs
+        const restUrl = redisUrl.replace('redis://', 'https://').split('@')[1];
+        const [host, token] = restUrl.split(':');
+
+        const response = await fetch(`https://${restUrl}/get/${orderId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
 
         if (data.result) {
-            // Karena kita simpan dalam bentuk { result: "JSON_STRING" }
-            const parseLapis1 = JSON.parse(data.result);
-            const dataAkunAsli = JSON.parse(parseLapis1.result);
-            
-            return res.status(200).json({ status: 'sukses', akun: dataAkunAsli });
+            return res.status(200).json({ status: 'sukses', akun: JSON.parse(data.result) });
         } else {
             return res.status(200).json({ status: 'menunggu' });
         }
     } catch (error) {
-        return res.status(500).json({ error: 'Gagal ambil data' });
+        return res.status(500).json({ error: 'Gagal' });
     }
 }
