@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MasD VPNStore - Order VLESS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>    <style>
         body { background-color: #0f172a; color: #f8fafc; }
         .card { background-color: #1e293b; border: 1px solid #334155; }
         .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
@@ -97,8 +97,10 @@
                 <p class="text-[10px] text-slate-500">Sistem otomatis mengecek pembayaran</p>
             </div>
             
-            <div class="card rounded-3xl overflow-hidden bg-white/5 mb-4 flex justify-center items-center border border-purple-500/30" style="height: 380px;">
-                <iframe id="iframe-qris" src="" width="100%" height="100%" frameborder="0" scrolling="no" class="rounded-xl"></iframe>
+            <div class="flex justify-center items-center mb-6 mt-2">
+                <div class="bg-white p-4 rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                    <div id="tempat-qris"></div>
+                </div>
             </div>
 
             <div class="text-center">
@@ -208,33 +210,69 @@
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
-    function prosesCheckout() {
+        async function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
         if (!user) return alert("Username wajib diisi!");
-        const orderId = `VLESS-${order.serverId}-${order.duration}-${user}-123-${Date.now()}`;
-        const urlPakasir = `https://app.pakasir.com/pay/masd/${order.price}?order_id=${orderId}&qris_only=1`;
-        document.getElementById('iframe-qris').src = urlPakasir;
-        document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(order.price).toLocaleString();
         
-        showScreen('screen-qris', 'Scan QRIS');
-        let cek = setInterval(async () => {
-            try {
-                const res = await fetch(`/api/cek_akun?order_id=${orderId}`);
-                const json = await res.json();
-                if (json.status === 'sukses') {
-                    clearInterval(cek); showScreen('screen-success', 'Detail Akun VLESS');
-                                        // Tangkap Data Potato (SG) ATAU Agung (ID)
-                    const akun = json.akun;
-                    document.getElementById('res-user').innerText = akun.username || akun.remarks || user;
-                    document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
-                    document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
-                    
-                    document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
-                    document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
-                    document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
-                }
-            } catch (e) {}
-        }, 3000);
+        const orderId = `VLESS-${order.serverId}-${order.duration}-${user}-123-${Date.now()}`;
+        
+        showScreen('screen-loading', 'Membuat QRIS...');
+
+        try {
+            // Minta string QRIS dari backend Vercel kita
+            const req = await fetch('/api/buat_qris', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: orderId, amount: order.price })
+            });
+            const resQris = await req.json();
+
+            if (resQris.status === 'sukses') {
+                // Tampilkan Harga + Kode Unik dari Pakasir
+                document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(resQris.total_bayar).toLocaleString();
+                
+                // Hapus QR lama jika ada, lalu Cetak QR Baru
+                document.getElementById('tempat-qris').innerHTML = "";
+                new QRCode(document.getElementById("tempat-qris"), {
+                    text: resQris.qris_string,
+                    width: 250,
+                    height: 250,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                // Munculkan layar QRIS ke pembeli
+                showScreen('screen-qris', 'Scan QRIS');
+
+                // Mulai deteksi pembayaran sukses
+                let cek = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/api/cek_akun?order_id=${orderId}`);
+                        const json = await res.json();
+                        if (json.status === 'sukses') {
+                            clearInterval(cek); 
+                            showScreen('screen-success', 'Detail Akun VLESS');
+                            
+                            const akun = json.akun;
+                            document.getElementById('res-user').innerText = akun.username || akun.remarks || user;
+                            document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                            document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
+                            
+                            document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
+                            document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
+                            document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
+                        }
+                    } catch (e) {}
+                }, 3000);
+            } else {
+                alert("Gagal memuat QRIS: " + resQris.alasan);
+                goBack();
+            }
+        } catch(e) {
+            alert("Terjadi kesalahan jaringan.");
+            goBack();
+        }
     }
 
     async function prosesTrial() {
