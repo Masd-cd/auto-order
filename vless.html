@@ -276,13 +276,24 @@
     }
 
     async function prosesTrial() {
+        // GEMBOK LEVEL 1: Cek ingatan Browser (Berdasarkan Tanggal Hari Ini)
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
+            return; // Hentikan proses, jangan lanjut ke server
+        }
+
         showScreen('screen-loading', 'Trial');
         try {
             const res = await fetch('/api/buat_trial_vless', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ serverId: order.serverId })});
             const json = await res.json();
+            
             if (json.status === 'sukses') {
+                // KUNCI BROWSER: Simpan tanggal hari ini ke ingatan browser
+                localStorage.setItem('masd_trial_date', hariIni);
+
                 showScreen('screen-success', 'Detail Trial VLESS');
-                                // Tangkap Data Potato (SG) ATAU Agung (ID)
+                
                 const akun = json.akun;
                 document.getElementById('res-user').innerText = akun.username || akun.remarks || "trial-auto";
                 document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
@@ -291,10 +302,15 @@
                 document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
                 document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
                 document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
-            } else { alert("Gagal: " + (json.alasan || "Server Sibuk")); goBack(); }
-        } catch (e) { alert("Error Koneksi"); goBack(); }
+            } else { 
+                alert("Gagal: " + (json.alasan || "Server Sibuk")); 
+                goBack(); 
+            }
+        } catch (e) { 
+            alert("Error Koneksi"); 
+            goBack(); 
+        }
     }
-
     function copyText(id) {
         navigator.clipboard.writeText(document.getElementById(id).innerText);
         const t = document.getElementById("toast"); t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2000);
