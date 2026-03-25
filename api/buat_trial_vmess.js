@@ -31,7 +31,8 @@ module.exports = async function handler(req, res) {
                     'x-api-key': process.env.AGUNG_API_KEY || '899e75f3d792d75954e05db23c76103809e084ebc0788a57a05f9d9dbe656aad'
                 },
                 body: JSON.stringify({
-                    server: "masdvpn"
+                    server: "MASDVPN",
+                    minutes: 15
                 }) 
             };
         }
