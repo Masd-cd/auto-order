@@ -94,7 +94,7 @@
             <div class="text-center mt-16"><div class="w-16 h-16 card rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse">⚙️</div><h3 class="text-xl font-bold text-white mb-2">Memproses Pesanan</h3><p class="text-sm text-purple-400 animate-pulse">Sedang memverifikasi pembayaran...</p></div>
         </div>
 
-                <div id="screen-success" class="screen">
+        <div id="screen-success" class="screen">
             <div class="card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                 <div class="flex items-center text-emerald-400 font-bold text-base mb-6 mt-1">
@@ -139,12 +139,20 @@
                 <div id="fmt-tls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-purple-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
-            <div class="card rounded-2xl p-4 mb-6 relative">
+            <div class="card rounded-2xl p-4 mb-4 relative">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link VLESS Non-TLS (80)</span>
                     <button onclick="copyText('fmt-ntls')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
                 </div>
                 <div id="fmt-ntls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-indigo-400 break-all leading-relaxed border border-[#334155]/50">-</div>
+            </div>
+
+            <div class="card rounded-2xl p-4 mb-6 relative">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link VLESS gRPC</span>
+                    <button onclick="copyText('fmt-grpc')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
+                </div>
+                <div id="fmt-grpc" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-pink-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
             <a href="index.html" class="block text-center w-full card border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-4 rounded-2xl transition mt-2 text-sm">
@@ -191,12 +199,15 @@
                 const json = await res.json();
                 if (json.status === 'sukses') {
                     clearInterval(cek); showScreen('screen-success', 'Detail Akun VLESS');
+                                        // Tangkap Data Potato (SG) ATAU Agung (ID)
                     const akun = json.akun;
-                    document.getElementById('res-user').innerText = akun.username || user;
-                    document.getElementById('res-host').innerText = akun.hostname || akun.host || "masdvpnstore.web.id";
+                    document.getElementById('res-user').innerText = akun.username || akun.remarks || user;
+                    document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
                     document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
-                    document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || "Cek di Panel";
-                    document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || "Cek di Panel";
+                    
+                    document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
+                    document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
+                    document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
                 }
             } catch (e) {}
         }, 3000);
@@ -209,12 +220,15 @@
             const json = await res.json();
             if (json.status === 'sukses') {
                 showScreen('screen-success', 'Detail Trial VLESS');
+                                // Tangkap Data Potato (SG) ATAU Agung (ID)
                 const akun = json.akun;
-                document.getElementById('res-user').innerText = akun.username || "trial-vless";
-                document.getElementById('res-host').innerText = akun.hostname || akun.host || "masdvpnstore.web.id";
+                document.getElementById('res-user').innerText = akun.username || akun.remarks || "trial-auto";
+                document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
                 document.getElementById('res-exp').innerText = "15 Menit";
-                document.getElementById('fmt-tls').innerText = JSON.stringify(akun);
-                document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || "Cek Manual";
+                
+                document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
+                document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
+                document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
             } else { alert("Gagal: " + (json.alasan || "Server Sibuk")); goBack(); }
         } catch (e) { alert("Error Koneksi"); goBack(); }
     }
