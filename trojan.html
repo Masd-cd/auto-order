@@ -248,11 +248,31 @@
     }
 
     async function prosesTrial() {
-        showScreen('screen-loading', 'Trial');
+        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        // GEMBOK LEVEL 1: Cek ingatan Browser (Berdasarkan Tanggal Hari Ini)
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
+            return; // Hentikan proses, jangan lanjut ke server
+        }
+
+        showScreen('screen-loading', 'Membuat Akun Trial');
+
         try {
-            const res = await fetch('/api/buat_trial_trojan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ serverId: order.serverId })});
-            const json = await res.json();
+            // Tembak file api/buat_trial_trojan.js (Yang sudah dipasang Gembok Level 2 Redis)
+            const response = await fetch('/api/buat_trial_trojan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ serverId: order.serverId })
+            });
+            
+            const json = await response.json();
+
             if (json.status === 'sukses') {
+                // KUNCI BROWSER: Simpan tanggal hari ini ke ingatan browser
+                localStorage.setItem('masd_trial_date', hariIni);
+
                 showScreen('screen-success', 'Detail Trial Trojan');
                 
                 const akun = json.akun;
@@ -261,9 +281,19 @@
                 document.getElementById('res-exp').innerText = "15 Menit";
                 
                 document.getElementById('fmt-tls').innerText = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
+                
+                // (Catatan: fmt-ntls tidak dipanggil karena di HTML Trojan kotaknya sudah kita hapus)
+                
                 document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
-            } else { alert("Gagal: " + (json.alasan || "Server Sibuk")); goBack(); }
-        } catch (e) { alert("Error Koneksi"); goBack(); }
+            } else {
+                // Munculkan alasan asli dari VPS atau tolakan limit dari Redis ke layar!
+                alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
+                goBack();
+            }
+        } catch (e) { 
+            alert("Terjadi kesalahan koneksi.");
+            goBack();
+        }
     }
 
     function copyText(id) {
