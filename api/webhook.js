@@ -123,14 +123,14 @@ module.exports = async function handler(req, res) {
                     fetchOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.POTATO_API_KEY}` },
-                        body: JSON.stringify({ expired: durasi, limitip: 2, username: username, uuidv2: buatUUID() })
+                        body: JSON.stringify({ expired: durasi, kuota: 300, limitip: 2, username: username, uuidv2: buatUUID() })
                     };
                 } else if (serverDipilih === 'IDTECH') {
                     vpsUrl = 'https://www.agung-store.my.id/api/addtrojan'; // Asumsi Agung API
                     fetchOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.AGUNG_API_KEY || '899e75f3d792d75954e05db23c76103809e084ebc0788a57a05f9d9dbe656aad' },
-                        body: JSON.stringify({ server: "masdvpn", username: username, quota: 100, ipLimit: 2, days: durasi })
+                        body: JSON.stringify({ server: "MASDVPN", username: username, quota: 300, ipLimit: 2, days: durasi })
                     };
                 }
             }
