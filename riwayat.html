@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasD VPNStore - Riwayat Pembelian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex justify-center p-4 pb-12">
+
+    <div class="w-full max-w-md space-y-4 relative">
+        <div class="flex items-center mb-6 pt-4 sticky top-0 bg-[#0f172a] z-10 pb-4 border-b border-[#334155]">
+            <a href="index.html" class="card hover:bg-[#334155] text-slate-300 px-3 py-2 rounded-xl text-xs font-bold mr-4 transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </a>
+            <h2 class="text-xl font-bold text-slate-100 tracking-tight">Riwayat Pembelian</h2>
+        </div>
+
+        <p class="text-[11px] text-slate-400 mb-4">*Data ini disimpan sementara di memori browser Anda (Local Storage) dan akan hilang jika Anda membersihkan Cache browser.</p>
+
+        <div id="list-riwayat" class="space-y-3">
+            </div>
+
+        <button onclick="hapusRiwayat()" class="w-full card hover:bg-rose-600/20 text-rose-500 border border-rose-500/30 font-bold py-3 rounded-2xl transition mt-8 text-xs">
+            Hapus Semua Riwayat
+        </button>
+    </div>
+
+<script>
+    // Fungsi untuk memuat data saat halaman dibuka
+    function loadRiwayat() {
+        const riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
+        const container = document.getElementById('list-riwayat');
+        
+        if(riwayat.length === 0) {
+            container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-12 font-medium">Belum ada riwayat akun di perangkat ini.</div>`;
+            return;
+        }
+
+        let html = '';
+        riwayat.forEach((item, index) => {
+            html += `
+            <div class="card p-4 rounded-3xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                <div class="flex justify-between items-start mb-3 pl-2">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-md uppercase tracking-wider">${item.layanan}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-medium">${item.tanggal}</span>
+                </div>
+                <div class="pl-2 space-y-1 mb-4">
+                    <div class="text-sm font-bold text-slate-200 font-mono">${item.username}</div>
+                    <div class="text-[11px] text-slate-400">Host: ${item.host}</div>
+                    <div class="text-[11px] text-slate-400">Expired: <span class="text-yellow-400">${item.expired}</span></div>
+                </div>
+                <div class="pl-2">
+                    <button onclick="downloadLagi(${index})" class="w-full bg-[#0f172a] border border-[#334155] py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-[#334155] transition flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download TXT
+                    </button>
+                </div>
+            </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // Fungsi untuk mendownload ulang file TXT
+    function downloadLagi(index) {
+        const riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
+        const item = riwayat[index];
+        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nUsername: ${item.username}\nHost/IP: ${item.host}\nExpired: ${item.expired}\n\n=== LINK AKUN ===\n[TLS]\n${item.tls}\n\n[NON-TLS]\n${item.ntls}\n\n[gRPC]\n${item.grpc}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
+        
+        const blob = new Blob([isiTeks], { type: 'text/plain' });
+        const anchor = document.createElement('a');
+        anchor.download = `${item.layanan.replace(/\s/g, '')}-${item.username}.txt`;
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.click();
+    }
+
+    // Fungsi menghapus semua data
+    function hapusRiwayat() {
+        if(confirm("Yakin ingin menghapus semua riwayat di perangkat ini?")) {
+            localStorage.removeItem('masd_riwayat');
+            loadRiwayat();
+        }
+    }
+
+    // Jalankan fungsi saat web pertama kali terbuka
+    window.onload = loadRiwayat;
+</script>
+</body>
+</html>
