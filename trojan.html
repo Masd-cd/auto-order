@@ -139,14 +139,6 @@
                 <div id="fmt-tls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-rose-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
-            <div class="card rounded-2xl p-4 mb-4 relative">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link Trojan Non-TLS</span>
-                    <button onclick="copyText('fmt-ntls')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
-                </div>
-                <div id="fmt-ntls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-indigo-400 break-all leading-relaxed border border-[#334155]/50">-</div>
-            </div>
-
             <div class="card rounded-2xl p-4 mb-6 relative">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link Trojan gRPC</span>
@@ -206,7 +198,6 @@
                     document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
                     
                     document.getElementById('fmt-tls').innerText = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
-                    document.getElementById('fmt-ntls').innerText = akun.trojan_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
                     document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
                 }
             } catch (e) {}
@@ -227,7 +218,6 @@
                 document.getElementById('res-exp').innerText = "15 Menit";
                 
                 document.getElementById('fmt-tls').innerText = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
-                document.getElementById('fmt-ntls').innerText = akun.trojan_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
                 document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
             } else { alert("Gagal: " + (json.alasan || "Server Sibuk")); goBack(); }
         } catch (e) { alert("Error Koneksi"); goBack(); }
