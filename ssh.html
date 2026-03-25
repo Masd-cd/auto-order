@@ -128,6 +128,29 @@
             </button>
         </div>
 
+        <div id="screen-qris" class="screen">
+            <div class="text-center mb-4">
+                <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-1">Total Pembayaran</p>
+                <h3 id="teks-harga-qris" class="text-2xl font-bold text-emerald-400 mb-1">Rp -</h3>
+                <p class="text-[10px] text-slate-500">Sistem otomatis mengecek pembayaran</p>
+            </div>
+            
+            <div class="flex justify-center items-center mb-6 mt-2">
+                <div class="bg-white p-4 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                    <div id="tempat-qris"></div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <div class="flex items-center justify-center text-sm text-slate-300 font-bold animate-pulse">
+                    <svg class="w-4 h-4 mr-2 animate-spin text-emerald-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Menunggu Pembayaran...
+                </div>
+            </div>
+            
+            <button onclick="goBack()" class="w-full card hover:bg-[#334155] text-slate-300 font-bold py-3 rounded-2xl transition mt-4 text-xs border border-[#334155]">Batalkan Pesanan</button>
+        </div>
+        
         <div id="screen-loading" class="screen">
             <div class="text-center mt-16">
                 <div class="w-16 h-16 card rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse shadow-[0_0_20px_rgba(99,102,241,0.2)]">⚙️</div>
@@ -256,8 +279,8 @@
         document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">SSH Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-indigo-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
-
-    function prosesCheckout() {
+    
+    async function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
         const pass = document.getElementById('input-pass').value.trim();
 
@@ -267,8 +290,27 @@
         // Order ID (Identitas Transaksi)
         const orderId = `SSH-${order.serverId}-${order.duration}-${user}-${pass}-${Date.now()}`;
         
-        window.open(`https://app.pakasir.com/pay/${slug}/${order.price}?order_id=${orderId}&qris_only=1`, '_blank');
-        showScreen('screen-loading', 'Membangun Server');
+        showScreen('screen-loading', 'Membuat QRIS...');
+
+        try {
+            const req = await fetch('/api/buat_qris', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: orderId, amount: order.price })
+            });
+            const resQris = await req.json();
+
+            if (resQris.status !== 'sukses') return alert("Gagal memuat QRIS: " + resQris.alasan);
+            
+            document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(resQris.total_bayar).toLocaleString();
+            document.getElementById('tempat-qris').innerHTML = "";
+            new QRCode(document.getElementById("tempat-qris"), {
+                text: resQris.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+            });
+            showScreen('screen-qris', 'Scan QRIS');
+        } catch(e) {
+            return alert("Error jaringan memuat QRIS");
+        }
 
         let cek = setInterval(async () => {
             try {
