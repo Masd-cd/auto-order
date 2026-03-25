@@ -349,14 +349,21 @@
             setTimeout(() => { toast.classList.remove("show"); }, 2000);
         });
     }
-        async function prosesTrial() {
+    async function prosesTrial() {
         if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        // GEMBOK LEVEL 1: Cek ingatan Browser (Berdasarkan Tanggal Hari Ini)
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
+            return; // Hentikan proses, jangan lanjut ke server
+        }
 
         showScreen('screen-loading', 'Membuat Akun Trial');
 
         try {
-            // Tembak file api/buat_trial.js yang baru kita buat
-            const response = await fetch('/api/buat_trial', {
+            // Tembak file api/buat_trial_ssh.js (Yang sudah dipasang Gembok Level 2 Redis)
+            const response = await fetch('/api/buat_trial_ssh', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ serverId: order.serverId })
@@ -364,21 +371,13 @@
             
             const json = await response.json();
 
-            // ... di dalam fungsi prosesTrial() ...
             if (json.status === 'sukses') {
-                
-                // TAMBAHKAN BARIS INI UNTUK MELIHAT ISI PERUT DATA AGUNG
-              //  alert("Data Asli VPS Agung: " + JSON.stringify(json.akun));
+                // KUNCI BROWSER: Simpan tanggal hari ini ke ingatan browser
+                localStorage.setItem('masd_trial_date', hariIni);
 
-                showScreen('screen-success', 'Informasi Akun SSH');
+                showScreen('screen-success', 'Detail Trial SSH');
                 
-                // ... (kode bawahnya biarkan sama persis) ...
-
-    showScreen('screen-success', 'Detail Trial SSH');
-    
-    // Ambil data hostname dari VPS atau gunakan domain default Mas
-                        // Baca format Potato ATAU Agung
-                                    // Baca format Potato ATAU Agung
+                // Baca format Potato ATAU Agung
                 const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
                 const u = json.akun.username || json.akun.user || "trial-auto";
                 const p = json.akun.password || json.akun.pass || "1";
@@ -391,16 +390,17 @@
 
                 document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
                 document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
-                        } else {
-                // Munculkan alasan asli dari VPS ke layar!
-                alert("Info dari VPS: " + (json.alasan || json.error || "Gagal membuat trial."));
+            } else {
+                // Munculkan alasan asli dari VPS atau tolakan limit dari Redis ke layar!
+                alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
                 goBack();
             }
         } catch (e) { 
             alert("Terjadi kesalahan koneksi.");
             goBack();
         }
-        }
+    }
+
 </script>
 </body>
 </html>
