@@ -340,10 +340,17 @@ if (json.status === 'sukses') {
     async function prosesTrial() {
         if (!order.serverId) return alert("Pilih server terlebih dahulu!");
 
+        // GEMBOK LEVEL 1: Cek ingatan Browser (Berdasarkan Tanggal Hari Ini)
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
+            return; // Hentikan proses, jangan lanjut ke server
+        }
+
         showScreen('screen-loading', 'Membuat Akun Trial');
 
         try {
-            // Tembak file api/buat_trial_vmess.js untuk Trial VMess
+            // Tembak file api/buat_trial_vmess.js (Yang sudah dipasang Gembok Level 2 Redis)
             const response = await fetch('/api/buat_trial_vmess', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -353,9 +360,11 @@ if (json.status === 'sukses') {
             const json = await response.json();
 
             if (json.status === 'sukses') {
+                // KUNCI BROWSER: Simpan tanggal hari ini ke ingatan browser
+                localStorage.setItem('masd_trial_date', hariIni);
+
                 showScreen('screen-success', 'Detail Trial VMess');
                 
-                                // Tangkap Data Potato (SG) ATAU Agung (ID)
                 const akun = json.akun;
                 document.getElementById('res-user').innerText = akun.username || akun.remarks || "trial-auto";
                 document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
@@ -365,7 +374,8 @@ if (json.status === 'sukses') {
                 document.getElementById('fmt-ws').innerText = akun.vmess_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
                 document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
             } else {
-                alert("Info dari VPS: " + (json.alasan || json.error || "Gagal membuat trial."));
+                // Munculkan alasan asli dari VPS atau tolakan limit dari Redis ke layar!
+                alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
                 goBack();
             }
         } catch (e) { 
@@ -373,6 +383,7 @@ if (json.status === 'sukses') {
             goBack();
         }
     }
+
 </script>
 </body>
 </html>
