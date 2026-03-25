@@ -204,7 +204,7 @@
     function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Durasi'); } }
     function pilihDurasi(durasi, harga) { 
         order.duration = durasi; order.price = harga; 
-        document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">VLESS Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-cyan-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
+        document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">VLESS Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-purple-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
