@@ -175,12 +175,20 @@
                 <div id="fmt-tls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-cyan-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
-            <div class="card rounded-2xl p-4 mb-6 relative">
+            <div class="card rounded-2xl p-4 mb-4 relative">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link VMess Non-TLS (80)</span>
                     <button onclick="copyText('fmt-ws')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
                 </div>
                 <div id="fmt-ws" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-indigo-400 break-all leading-relaxed border border-[#334155]/50">-</div>
+            </div>
+
+            <div class="card rounded-2xl p-4 mb-6 relative">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link VMess gRPC</span>
+                    <button onclick="copyText('fmt-grpc')" class="bg-[#0f172a] border border-[#334155] text-slate-300 px-3 py-1 rounded-md text-[10px] font-bold hover:bg-[#334155] transition">COPY</button>
+                </div>
+                <div id="fmt-grpc" class="bg-[#0f172a] p-3 rounded-xl font-mono text-[10px] text-pink-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
             <a href="index.html" class="block text-center w-full card border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-4 rounded-2xl transition mt-2 text-sm">
@@ -259,36 +267,18 @@
                 const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
                 const json = await response.json();
 
- // ... di dalam bagian sukses pengecekan akun ...
 if (json.status === 'sukses') {
     clearInterval(cek);
     showScreen('screen-success', 'Detail Akun VMess');
     
-    // Tangkap data mentah dari Agung/Potato
-    const akun = json.akun;
-    
-    // 1. Cari Link TLS: Cek key 'vmess', 'link.tls', atau 'vmess_tls'
-    const linkTls = akun.vmess || 
-                    (akun.link && akun.link.tls) || 
-                    akun.vmess_tls || 
-                    "⚠️ Link TLS tidak dikirim oleh server.";
-
-    // 2. Cari Link Non-TLS: Cek key 'vmess_ntls' atau 'link.none'
-    const linkNtls = akun.vmess_ntls || 
-                     (akun.link && akun.link.none) || 
-                     "Gunakan link TLS di atas.";
-
-    // 3. Ambil data pendukung (Gunakan input user jika server kirim null)
-    const resUser = akun.username || user;
-    const resExp = akun.expired || akun.exp || (order.duration + " Hari");
-    const domain = akun.host || akun.hostname || "id.masdvpnstore.web.id";
-
-    // Update Tampilan UI
-    document.getElementById('res-user').innerText = resUser;
-    document.getElementById('res-host').innerText = domain;
-    document.getElementById('res-exp').innerText = resExp;
-    document.getElementById('fmt-tls').innerText = linkTls;
-    document.getElementById('fmt-ws').innerText = linkNtls;
+                    const akun = json.akun;
+                    document.getElementById('res-user').innerText = akun.username || akun.remarks || user;
+                    document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                    document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
+                    
+                    document.getElementById('fmt-tls').innerText = akun.vmess || akun.vmess_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
+                    document.getElementById('fmt-ws').innerText = akun.vmess_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
+                    document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
 }
 
             } catch (e) { console.log("Menunggu validasi QRIS..."); }
@@ -322,20 +312,15 @@ if (json.status === 'sukses') {
             if (json.status === 'sukses') {
                 showScreen('screen-success', 'Detail Trial VMess');
                 
-                const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
-                const u = json.akun.username || json.akun.user || "trial-auto";
-                const exp = "15 Menit";
-
-                // Deteksi Link VMess
-                const linkTls = (json.akun.link && json.akun.link.tls) ? json.akun.link.tls : (json.akun.vmess_tls || "Link TLS tidak tersedia");
-                const linkNtls = (json.akun.link && json.akun.link.none) ? json.akun.link.none : (json.akun.vmess_ntls || "Link Non-TLS tidak tersedia");
+                                // Tangkap Data Potato (SG) ATAU Agung (ID)
+                const akun = json.akun;
+                document.getElementById('res-user').innerText = akun.username || akun.remarks || "trial-auto";
+                document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                document.getElementById('res-exp').innerText = "15 Menit";
                 
-                document.getElementById('res-user').innerText = u;
-                document.getElementById('res-host').innerText = domain;
-                document.getElementById('res-exp').innerText = exp;
-
-                document.getElementById('fmt-tls').innerText = linkTls;
-                document.getElementById('fmt-ws').innerText = linkNtls;
+                document.getElementById('fmt-tls').innerText = akun.vmess || akun.vmess_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
+                document.getElementById('fmt-ws').innerText = akun.vmess_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
+                document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
             } else {
                 alert("Info dari VPS: " + (json.alasan || json.error || "Gagal membuat trial."));
                 goBack();
