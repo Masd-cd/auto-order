@@ -345,9 +345,12 @@
                     document.getElementById('res-pass').innerText = resPass;
                     document.getElementById('res-host').innerText = domain;
                     document.getElementById('res-exp').innerText = resExp;
+                    simpanKeRiwayat("SSH Premium", u, domain, order.duration + " Hari", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, "-");
+                    
 
                     document.getElementById('fmt-ws').innerText = `${domain}:80@${resUser}:${resPass}`;
                     document.getElementById('fmt-tls').innerText = `${domain}:443@${resUser}:${resPass}`;
+                    
                 }
             } catch (e) { console.log("Menunggu validasi QRIS..."); }
         }, 3000);
@@ -399,6 +402,8 @@
                 document.getElementById('res-pass').innerText = p;
                 document.getElementById('res-host').innerText = domain;
                 document.getElementById('res-exp').innerText = exp;
+                simpanKeRiwayat("SSH Trial", u, domain, "15 Menit", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, "-");
+                
 
                 document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
                 document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
@@ -412,6 +417,28 @@
             goBack();
         }
     }
+    function simpanKeRiwayat(tipe, user, host, exp, linkTls, linkNtls, linkGrpc) {
+        let riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
+        riwayat.unshift({ tanggal: new Date().toLocaleString('id-ID'), layanan: tipe, username: user, host: host, expired: exp, tls: linkTls, ntls: linkNtls, grpc: linkGrpc });
+        localStorage.setItem('masd_riwayat', JSON.stringify(riwayat));
+    }
+
+    function downloadTXT() {
+        const u = document.getElementById('res-user').innerText;
+        const h = document.getElementById('res-host').innerText;
+        const e = document.getElementById('res-exp').innerText;
+        const p = document.getElementById('res-pass').innerText;
+        const tls = document.getElementById('fmt-tls').innerText;
+        const ws = document.getElementById('fmt-ws').innerText;
+
+        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: SSH\nUsername: ${u}\nPassword: ${p}\nHost/IP: ${h}\nExpired: ${e}\n\n=== LINK AKUN ===\n[WS TLS (443)]\n${tls}\n\n[WS NON-TLS (80)]\n${ws}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
+        const blob = new Blob([isiTeks], { type: 'text/plain' });
+        const anchor = document.createElement('a');
+        anchor.download = `SSH-${u}.txt`;
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.click();
+    }
+    
 
 </script>
 </body>
