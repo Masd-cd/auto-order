@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasD VPNStore - Daftar Member</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-sm space-y-6 fade-in-up">
+        
+        <div class="flex flex-col items-center justify-center mb-6 mt-1 text-center">
+            <div class="bg-indigo-600/20 p-3 rounded-2xl border border-indigo-500/30 mb-4 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 tracking-tight">MasD VPNStore</h1>
+            
+            <div class="w-12 h-12 bg-[#1e293b] rounded-xl border border-[#334155] flex items-center justify-center text-2xl mx-auto mt-5 mb-3 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                📝
+            </div>
+            
+            <p class="text-[11px] text-slate-300 font-bold tracking-wider uppercase bg-[#1e293b] mt-0 inline-block px-4 py-1.5 rounded-full border border-[#334155]">
+                Daftar Member
+            </p>
+        </div>
+
+        <div class="card p-6 rounded-3xl shadow-xl space-y-4">
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Nama Lengkap</label>
+                <input type="text" id="nama" placeholder="Contoh: MasD" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-4 py-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Email</label>
+                <input type="email" id="email" placeholder="nama@email.com" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-4 py-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Password</label>
+                <input type="password" id="password" placeholder="Minimal 6 karakter" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-4 py-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+
+            <button id="btn-daftar" onclick="prosesRegister()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-2xl transition shadow-[0_0_15px_rgba(99,102,241,0.3)] mt-2">
+                Daftar Sekarang
+            </button>
+            
+            <p class="text-xs text-center text-slate-400 mt-4">
+                Sudah punya akun? <a href="login.html" class="text-indigo-400 font-bold hover:underline">Masuk di sini</a>
+            </p>
+        </div>
+
+        <div class="mt-8 text-center pb-2">
+            <p class="text-[11px] text-slate-500 font-medium tracking-wide">
+                &copy; Built by <span class="text-slate-400 font-bold">MasD VPNStore</span> 2026.
+            </p>
+        </div>
+    </div>
+
+<script>
+    // MASUKKAN KUNCI RAHASIA SUPABASE MASD DI SINI
+    const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
+    
+    // Inisialisasi Supabase
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function prosesRegister() {
+        const nama = document.getElementById('nama').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const btnDaftar = document.getElementById('btn-daftar');
+
+        if(!nama || !email || !password) return alert("Semua kolom wajib diisi, MasD!");
+        if(password.length < 6) return alert("Password minimal 6 karakter ya.");
+
+        // Ubah tombol jadi loading
+        btnDaftar.innerText = "Memproses...";
+        btnDaftar.disabled = true;
+        btnDaftar.classList.add('opacity-50');
+
+        try {
+            // 1. Buat akun di Supabase Auth
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+            });
+
+            if (error) throw error;
+
+            // 2. Simpan nama ke tabel profil_pengguna yang tadi kita buat
+            if (data.user) {
+                const { error: profileError } = await supabase
+                    .from('profil_pengguna')
+                    .insert([{ 
+                        id: data.user.id, 
+                        email: email, 
+                        nama_lengkap: nama 
+                    }]);
+                
+                if (profileError) console.error("Gagal simpan profil:", profileError);
+            }
+
+            alert("Pendaftaran Berhasil! Silakan Login.");
+            window.location.href = 'login.html'; // Pindah ke halaman login
+
+        } catch (error) {
+            alert("Gagal mendaftar: " + error.message);
+        } finally {
+            // Kembalikan tombol seperti semula
+            btnDaftar.innerText = "Daftar Sekarang";
+            btnDaftar.disabled = false;
+            btnDaftar.classList.remove('opacity-50');
+        }
+    }
+</script>
+</body>
+</html>
