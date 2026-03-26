@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasD VPNStore - Login Member</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .card { background-color: #1e293b; border: 1px solid #334155; }
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-sm space-y-6 fade-in-up">
+        
+        <div class="flex flex-col items-center justify-center mb-6 mt-1 text-center">
+            
+            <div class="bg-indigo-600/20 p-3 rounded-2xl border border-indigo-500/30 mb-4 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 tracking-tight">MasD VPNStore</h1>
+
+            <div class="w-12 h-12 bg-[#1e293b] rounded-xl border border-[#334155] flex items-center justify-center text-2xl mx-auto mt-5 mb-3 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                🔐
+            </div>
+
+            <p class="text-[11px] text-slate-300 font-bold tracking-wider uppercase bg-[#1e293b] mt-0 inline-block px-4 py-1.5 rounded-full border border-[#334155]">
+                Login Member
+            </p>
+        </div>
+        <div class="card p-6 rounded-3xl shadow-xl space-y-4">
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Email</label>
+                <input type="email" id="email" placeholder="nama@email.com" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-4 py-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider pl-1">Password</label>
+                <input type="password" id="password" placeholder="••••••••" class="w-full bg-[#0f172a] border border-[#334155] text-slate-100 text-sm rounded-2xl px-4 py-3 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition placeholder-slate-600">
+            </div>
+
+            <button onclick="prosesLogin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-2xl transition shadow-[0_0_15px_rgba(99,102,241,0.3)] mt-2">
+                Masuk Sekarang
+            </button>
+            
+            <p class="text-xs text-center text-slate-400 mt-4">
+                Belum punya akun? <a href="register.html" class="text-indigo-400 font-bold hover:underline">Daftar di sini</a>
+            </p>
+        </div>
+
+        <div class="mt-8 text-center pb-2">
+            <p class="text-[11px] text-slate-500 font-medium tracking-wide">
+                &copy; Built by <span class="text-slate-400 font-bold">MasD VPNStore</span> 2026.
+            </p>
+            <p class="text-[10px] text-slate-600 mt-1">
+                Supported API by Agung Tunneling & Potato Tunneling.
+            </p>
+        </div>
+    </div>
+
+<script>
+    function prosesLogin() {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value.trim();
+        if(!email || !pass) return alert("Email & Password wajib diisi!");
+        
+        alert("Kabel Supabase Auth belum dipasang, MasD! 😉");
+    }
+</script>
+</body>
+</html>
