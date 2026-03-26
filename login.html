@@ -67,12 +67,40 @@
     </div>
 
 <script>
-    function prosesLogin() {
+        async function prosesLogin() {
         const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('password').value.trim();
-        if(!email || !pass) return alert("Email & Password wajib diisi!");
-        
-        alert("Kabel Supabase Auth belum dipasang, MasD! 😉");
+        const password = document.getElementById('password').value.trim();
+        const btnLogin = document.querySelector('button'); 
+
+        if(!email || !password) return alert("Email & Password wajib diisi!");
+
+        // Ubah tombol jadi loading
+        const teksAsli = btnLogin.innerText;
+        btnLogin.innerText = "Mengecek Data...";
+        btnLogin.disabled = true;
+        btnLogin.classList.add('opacity-50');
+
+        try {
+            // Proses Login Auth ke Supabase
+            const { data, error } = await db.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) throw error;
+
+            // Kalau sukses login, langsung masuk ke beranda toko
+            window.location.href = 'index.html';
+
+        } catch (error) {
+            alert("Gagal Login: Email tidak terdaftar atau Password salah.");
+            console.error("Error Login:", error.message);
+        } finally {
+            // Kembalikan tombol ke semula jika gagal
+            btnLogin.innerText = teksAsli;
+            btnLogin.disabled = false;
+            btnLogin.classList.remove('opacity-50');
+        }
     }
 </script>
 </body>
