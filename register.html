@@ -67,12 +67,12 @@
     </div>
 
 <script>
-    // MASUKKAN KUNCI RAHASIA SUPABASE MASD DI SINI
+    // KUNCI RAHASIA SUPABASE MASD
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     
-    // Inisialisasi Supabase
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Inisialisasi Supabase (Ubah nama jadi 'db' biar gak bentrok)
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function prosesRegister() {
         const nama = document.getElementById('nama').value.trim();
@@ -89,17 +89,17 @@
         btnDaftar.classList.add('opacity-50');
 
         try {
-            // 1. Buat akun di Supabase Auth
-            const { data, error } = await supabase.auth.signUp({
+            // 1. Buat akun di Supabase Auth pakai 'db'
+            const { data, error } = await db.auth.signUp({
                 email: email,
                 password: password,
             });
 
             if (error) throw error;
 
-            // 2. Simpan nama ke tabel profil_pengguna yang tadi kita buat
+            // 2. Simpan nama ke tabel profil_pengguna 
             if (data.user) {
-                const { error: profileError } = await supabase
+                const { error: profileError } = await db
                     .from('profil_pengguna')
                     .insert([{ 
                         id: data.user.id, 
