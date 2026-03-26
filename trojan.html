@@ -191,7 +191,7 @@
         </div>
  
            <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-6 py-3 rounded-2xl font-bold text-sm z-50">Berhasil disalin!</div>
-        <div class="mt-12 mb-8 text-center fade-in-up" style="animation-delay: 0.1s;">
+        <div id="footer-credit" class="mt-12 mb-8 text-center fade-in-up" style="animation-delay: 0.1s;">
             <p class="text-[11px] text-slate-400 font-medium tracking-wide">
                 &copy; Built by MasD VPNStore 2026.
             </p>
@@ -204,16 +204,28 @@
     let order = { protocol: 'TROJAN', serverId: '', serverName: '', duration: '', price: '' };
     let historyStack = ['screen-server'];
 
-    function showScreen(screenId, title) {
+        function showScreen(screenId, title) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
+
+        const btnBack = document.getElementById('btn-back');
         document.getElementById('header-title').innerText = title;
-        document.getElementById('btn-back').style.display = (screenId === 'screen-loading' || screenId === 'screen-success') ? 'none' : 'block';
+
+        if (screenId === 'screen-loading' || screenId === 'screen-success') {
+            btnBack.classList.add('hidden');
+        } else {
+            btnBack.classList.remove('hidden');
+        }
+
+        // --- PELATUK ANIMASI FOOTER ---
+        const footer = document.getElementById('footer-credit');
+        if (footer) {
+            footer.classList.remove('fade-in-up');
+            void footer.offsetWidth; // Ini trik ajaib untuk me-reset animasi
+            footer.classList.add('fade-in-up');
+        }
     }
 
-    function goBack() {
-        if(historyStack.length > 1) { historyStack.pop(); showScreen(historyStack[historyStack.length-1], "Pilih"); } else { window.location.href = 'index.html'; }
-    }
 
     function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Layanan'); }
     function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Durasi'); } }
