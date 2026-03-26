@@ -243,7 +243,7 @@
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
         Berhasil disalin!
     </div>
-        <div id="footer-credit" class="mt-12 mb-8 text-center fade-in-up" style="animation-delay: 0.1s;">
+        <div id="footer-credit" class="mt-12 mb-8 text-center">
             <p class="text-[11px] text-slate-400 font-medium tracking-wide">
                 &copy; Built by MasD VPNStore 2026.
             </p>
@@ -261,6 +261,7 @@
     let historyStack = ['screen-server'];
 
         function showScreen(screenId, title) {
+            function showScreen(screenId, title) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
 
@@ -273,12 +274,12 @@
             btnBack.classList.remove('hidden');
         }
 
-        // --- PELATUK ANIMASI FOOTER ---
-        const footer = document.getElementById('footer-credit');
-        if (footer) {
-            footer.classList.remove('fade-in-up');
-            void footer.offsetWidth; // Ini trik ajaib untuk me-reset animasi
-            footer.classList.add('fade-in-up');
+        // --- ANIMASI FOOTER SINKRON 0.4 DETIK ---
+        const f = document.getElementById('footer-credit'); // <-- Sudah pakai ID MasD
+        if(f) {
+            f.style.animation = 'none';
+            void f.offsetWidth; // Trik me-reset animasi
+            f.style.animation = 'fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
         }
     }
 
