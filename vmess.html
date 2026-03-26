@@ -157,11 +157,12 @@
         </div>
 
         <div id="screen-success" class="screen">
-            <button onclick="downloadTXT()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center justify-center">
+            <button onclick="downloadTXT()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl transition mb-4 text-sm shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center justify-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     Download Detail Akun (.txt)
             </button>
-            <div class="space-y-3 mt-4 card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
+
+            <div class="space-y-3 card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                 <div class="flex items-center text-emerald-400 font-bold text-base mb-6 mt-1">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -330,12 +331,13 @@ if (json.status === 'sukses') {
                     document.getElementById('res-user').innerText = akun.username || akun.remarks || user;
                     document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
                     document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
-                    simpanKeRiwayat("VMess Premium", akun.username || user, akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id", order.duration + " Hari", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, document.getElementById('fmt-grpc').innerText);
-    
+                        
                     
                     document.getElementById('fmt-tls').innerText = akun.vmess || akun.vmess_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
                     document.getElementById('fmt-ws').innerText = akun.vmess_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
                     document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
+                    simpanKeRiwayat("VMess Premium", akun.username || user, akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id", order.duration + " Hari", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, document.getElementById('fmt-grpc').innerText);
+
 }
 
             } catch (e) { console.log("Menunggu validasi QRIS..."); }
@@ -383,12 +385,13 @@ if (json.status === 'sukses') {
                 document.getElementById('res-user').innerText = akun.username || akun.remarks || "trial-auto";
                 document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
                 document.getElementById('res-exp').innerText = "15 Menit";
-                simpanKeRiwayat("VMess Trial", "trial-auto", "id.masdvpnstore.web.id", "15 Menit", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, document.getElementById('fmt-grpc').innerText);
-                
+                                
                 
                 document.getElementById('fmt-tls').innerText = akun.vmess || akun.vmess_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
                 document.getElementById('fmt-ws').innerText = akun.vmess_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
                 document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
+                simpanKeRiwayat("VMess Trial", "trial-auto", "id.masdvpnstore.web.id", "15 Menit", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, document.getElementById('fmt-grpc').innerText);
+                
             } else {
                 // Munculkan alasan asli dari VPS atau tolakan limit dari Redis ke layar!
                 alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
