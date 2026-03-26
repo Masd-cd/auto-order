@@ -234,7 +234,20 @@
             footer.classList.add('fade-in-up');
         }
     }
-
+function goBack() {
+        if(historyStack.length > 1) {
+            historyStack.pop();
+            const prevScreen = historyStack[historyStack.length - 1];
+            
+            let title = "Pilih Server";
+            if(prevScreen === 'screen-type') title = "Tipe Layanan";
+            if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            
+            showScreen(prevScreen, title);
+        } else {
+            window.location.href = 'index.html';
+        }
+    }
 
     function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Layanan'); }
     function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Durasi'); } }
