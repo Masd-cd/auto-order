@@ -93,8 +93,9 @@
             window.location.href = 'index.html';
 
         } catch (error) {
-            alert("Gagal Login: Email tidak terdaftar atau Password salah.");
+            alert("Pesan dari sistem: " + error.message);
             console.error("Error Login:", error.message);
+        }
         } finally {
             // Kembalikan tombol ke semula jika gagal
             btnLogin.innerText = teksAsli;
