@@ -67,7 +67,15 @@
     </div>
 
 <script>
-        async function prosesLogin() {
+<script>
+    // KUNCI RAHASIA SUPABASE MASD
+    const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
+    
+    // Inisialisasi Supabase
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function prosesLogin() {
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value.trim();
         const btnLogin = document.querySelector('button'); 
@@ -93,9 +101,9 @@
             window.location.href = 'index.html';
 
         } catch (error) {
-            alert("Pesan dari sistem: " + error.message);
+            // Menampilkan pesan error asli dari Supabase
+            alert("Pesan dari sistem Supabase: " + error.message);
             console.error("Error Login:", error.message);
-        }
         } finally {
             // Kembalikan tombol ke semula jika gagal
             btnLogin.innerText = teksAsli;
