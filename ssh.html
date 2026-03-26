@@ -162,7 +162,12 @@
         </div>
 
         <div id="screen-success" class="screen">
-            <div class="card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
+                <button onclick="downloadTXT()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download Detail Akun (.txt)
+                </button>
+            
+            <div class="space-y-3 mt-4 card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
                 <div class="flex items-center text-emerald-400 font-bold text-base mb-6 mt-1">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -222,11 +227,16 @@
                 <div id="fmt-tls" class="bg-[#0f172a] p-3 rounded-xl font-mono text-xs text-cyan-400 break-all leading-relaxed border border-[#334155]/50">-</div>
             </div>
 
-            <a href="index.html" class="block text-center w-full card border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-4 rounded-2xl transition mt-2 text-sm">
-                Kembali ke Menu Utama
-            </a>
-        </div>
+            <div class="space-y-3 mt-4">
+                <button onclick="downloadTXT()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download Detail Akun (.txt)
+                </button>
 
+                <a href="index.html" class="flex items-center justify-center w-full bg-[#1e293b] border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-3.5 rounded-2xl transition text-sm">
+                    Kembali ke Menu Utama
+                </a>
+            </div>
     </div>
 
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-[0_0_20px_rgba(79,70,229,0.4)] z-50 flex items-center">
