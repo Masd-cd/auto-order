@@ -294,6 +294,72 @@
     }
     cekAkses(); 
 
+        // --- PENANGKAP LANJUT BAYAR DARI RIWAYAT ---
+    function cekResumeQris() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('resume') === 'true') {
+            const dataResume = JSON.parse(sessionStorage.getItem('qris_resume'));
+            if (dataResume) {
+                // Langsung lompat ke layar QRIS
+                document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(dataResume.total_bayar).toLocaleString();
+                document.getElementById('tempat-qris').innerHTML = "";
+                new QRCode(document.getElementById("tempat-qris"), {
+                    text: dataResume.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                showScreen('screen-qris', 'Scan QRIS');
+                mulaiTimerQris(dataResume.invoice, 10);
+                
+                // Mulai fungsi ngecek pembayaran ulang!
+                let cekPembayaranResume = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/api/cek_akun?order_id=${dataResume.invoice}`);
+                        const json = await res.json();
+
+                        if (json.status === 'sukses') {
+                            clearInterval(cekPembayaranResume);
+                            clearInterval(qrisTimerInterval);
+                            
+                            // Ambil data akun dari Vercel
+                            const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                            const resUser = json.akun.username || json.akun.user || "user-" + Math.floor(Math.random()*1000);
+                            const resPass = json.akun.password || json.akun.pass || "1";
+                            const resExp = json.akun.exp || json.akun.expired || "Aktif";
+                            
+                            const tlsLink = `${domain}:443@${resUser}:${resPass}`;
+                            const ntlsLink = `${domain}:80@${resUser}:${resPass}`;
+
+                            // Update layar
+                            showScreen('screen-success', 'Informasi Akun SSH');
+                            document.getElementById('res-user').innerText = resUser;
+                            document.getElementById('res-pass').innerText = resPass;
+                            document.getElementById('res-host').innerText = domain;
+                            document.getElementById('res-exp').innerText = resExp;
+                            document.getElementById('fmt-ws').innerText = ntlsLink;
+                            document.getElementById('fmt-tls').innerText = tlsLink;
+
+                            // Update status di Supabase jadi LUNAS
+                            await db.from('transaksi_pembelian')
+                                .update({ status: 'success', username_vpn: resUser, password_vpn: resPass, host_vpn: domain, expired_vpn: resExp, link_tls: tlsLink, link_ntls: ntlsLink })
+                                .eq('no_invoice', dataResume.invoice);
+                        }
+                    } catch (e) { console.log("Menunggu validasi QRIS resume..."); }
+                }, 3000);
+
+                // Hapus memori biar ga nyangkut pas refresh
+                sessionStorage.removeItem('qris_resume');
+                return true; 
+            }
+        }
+        return false;
+    }
+    
+    // Jalankan pengecekan setelah halaman dimuat sebentar (delay 500ms agar UI siap)
+    setTimeout(() => {
+        cekResumeQris();
+    }, 500);
+    
+
     // --- 3. NAVIGASI LAYAR ---
     function showScreen(screenId, title) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
