@@ -271,7 +271,7 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentUserId = null; // Menyimpan ID user yang login
+    let currentUserId = null; 
     let order = { protocol: 'SSH', serverId: '', serverName: '', duration: '', price: '' };
     let historyStack = ['screen-server'];
     let qrisTimerInterval = null;
@@ -284,19 +284,15 @@
                 window.location.href = 'login.html';
             } else {
                 currentUserId = data.session.user.id;
-                
-                // Hilangkan layar hitam muter-muter
                 const overlay = document.getElementById('loading-overlay');
                 if(overlay) overlay.style.display = 'none';
-                
-                // Pastikan layar pilihan server yang muncul pertama
                 showScreen('screen-server', 'Pilih Server');
             }
         } catch (err) {
             window.location.href = 'login.html';
         }
     }
-    cekAkses(); // Jalankan pas web dibuka
+    cekAkses(); 
 
     // --- 3. NAVIGASI LAYAR ---
     function showScreen(screenId, title) {
@@ -358,10 +354,9 @@
         }
     }
 
-        function mulaiTimerQris(orderId, durasiMenit = 10) {
+    function mulaiTimerQris(orderId, durasiMenit = 10) {
         if (qrisTimerInterval) clearInterval(qrisTimerInterval);
         
-        // 1. Tangkap elemen UI tempat jam hitung mundur
         const timerDisplay = document.getElementById('waktu-qris'); 
         if(timerDisplay) timerDisplay.parentElement.classList.remove('hidden');
 
@@ -370,17 +365,12 @@
         qrisTimerInterval = setInterval(async () => {
             waktuTersisa--;
 
-            // 2. Rumus menghitung menit dan detik
             let menit = Math.floor(waktuTersisa / 60);
             let detik = waktuTersisa % 60;
-            
-            // 3. Format angka biar selalu 2 digit (contoh: 09:05)
             let formatWaktu = `${menit.toString().padStart(2, '0')}:${detik.toString().padStart(2, '0')}`;
             
-            // 4. Tampilkan update waktu ke layar HTML
             if(timerDisplay) timerDisplay.innerText = formatWaktu;
 
-            // 5. Kalau waktu habis (0), tendang!
             if (waktuTersisa <= 0) {
                 clearInterval(qrisTimerInterval);
                 await updateStatusTransaksi(orderId, 'expired');
@@ -389,7 +379,7 @@
             }
         }, 1000);
     }
-    
+
     // --- 6. PROSES UTAMA (CHECKOUT PAYDISINI) ---
     async function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
@@ -413,10 +403,7 @@
                 status: 'pending'
             }]);
 
-            if (dbError) {
-                console.error("Error Lengkap Supabase:", dbError);
-                throw new Error("Pesan dari Supabase: " + dbError.message);
-            }
+            if (dbError) throw new Error("Gagal menyimpan transaksi ke database.");
 
             // B. Panggil API PayDisini
             const req = await fetch('/api/buat_qris', {
@@ -439,14 +426,14 @@
             });
             
             showScreen('screen-qris', 'Scan QRIS');
-            mulaiTimerQris(orderId, 10); // Mulai Hitung Mundur 10 Menit
+            mulaiTimerQris(orderId, 10); // Mulai Hitung Mundur
 
         } catch(e) {
             console.error(e);
             return alert(e.message || "Error jaringan memuat QRIS");
         }
 
-        // D. Loop Cek Pembayaran Lunas
+        // D. Loop Cek Pembayaran Lunas & Simpan Akun VPN
         let cekPembayaranInterval = setInterval(async () => {
             try {
                 const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
@@ -488,11 +475,13 @@
                                 link_ntls: ntlsLink
                             })
                             .eq('no_invoice', orderId);
-                        console.log("Transaksi sukses & akun tersimpan di Supabase!");
                     } catch (dbErr) {
                         console.error("Gagal nyimpen detail akun ke DB:", dbErr);
                     }
                 }
+            } catch (e) { console.log("Menunggu validasi QRIS..."); }
+        }, 3000);
+    }
 
     // --- 7. COPY & DOWNLOAD ---
     function copyText(elementId) {
