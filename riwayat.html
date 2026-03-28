@@ -75,9 +75,49 @@
         }
     };
 
-    window.lanjutBayar = function(invoice, event) {
-        event.stopPropagation(); 
-        alert("Fitur bayar ulang untuk invoice " + invoice + " sedang disiapkan!");
+    window.lanjutBayar = async function(invoice, harga, event) {
+        event.stopPropagation();
+        
+        // Cek harga dari parameter, jika undefined/error, set fallback (misal 5000, atau minta user order ulang)
+        let totalHarga = harga || 5000; // Harusnya harga diteruskan dari card
+
+        try {
+            // Kita tampilkan pesan loading sementara
+            alert("Sedang memuat ulang QRIS untuk " + invoice + "... Mohon tunggu sebentar.");
+            
+            // Kita panggil API buat_qris di Vercel lagi dengan invoice yang sama
+            const response = await fetch('/api/buat_qris', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: invoice, amount: totalHarga })
+            });
+
+            const resQris = await response.json();
+
+            if (resQris.status === 'sukses') {
+                // Jika sukses, kita arahkan user kembali ke halaman ssh.html 
+                // TETAPI kita bawa data qris_string-nya di URL (menggunakan sessionStorage)
+                // Ini trik supaya ssh.html bisa langsung nampilin QRIS tanpa harus ngisi form lagi
+                
+                // Simpan data QRIS sementara di memori browser
+                sessionStorage.setItem('qris_resume', JSON.stringify({
+                    invoice: invoice,
+                    qris_string: resQris.qris_string,
+                    total_bayar: resQris.total_bayar,
+                    layanan: 'SSH' // Sesuaikan jika kamu butuh dinamis
+                }));
+
+                // Lompat ke ssh.html (kita akan modifikasi sedikit ssh.html nanti agar bisa menangkap data ini)
+                window.location.href = 'ssh.html?resume=true';
+
+            } else {
+                alert("Gagal memuat ulang QRIS: " + (resQris.alasan || "Silakan buat pesanan baru."));
+            }
+
+        } catch (error) {
+            console.error("Gagal panggil QRIS ulang:", error);
+            alert("Terjadi kesalahan jaringan.");
+        }
     };
 
     window.downloadTXT = function(index, event) {
@@ -178,7 +218,7 @@
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
                             <p class="text-[10px] text-slate-400 mb-2 leading-relaxed">Waktu tersisa: <span class="text-rose-400 font-bold">${sisaMenit} Menit</span>. Segera selesaikan pembayaran.</p>
-                            <button onclick="lanjutBayar('${item.no_invoice}', event)" class="w-full bg-amber-500 hover:bg-amber-600 text-[#0f172a] font-extrabold py-2.5 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
+                            <button onclick="lanjutBayar('${item.no_invoice}', ${item.harga}, event)" class="w-full bg-amber-500 hover:bg-amber-600 text-[#0f172a] font-extrabold py-2.5 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
                                 Lanjutkan Pembayaran (QRIS)
                             </button>
                         </div>
