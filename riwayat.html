@@ -76,16 +76,18 @@
     };
 
     window.lanjutBayar = async function(invoice, harga, event) {
+    window.lanjutBayar = async function(invoice, harga, event) {
         event.stopPropagation();
         
-        // Cek harga dari parameter, jika undefined/error, set fallback (misal 5000, atau minta user order ulang)
-        let totalHarga = harga || 5000; // Harusnya harga diteruskan dari card
+        // Ubah teks tombol jadi loading biar elegan
+        const btn = event.currentTarget;
+        const teksAsli = btn.innerHTML;
+        btn.innerHTML = `<svg class="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat QRIS...`;
+        btn.disabled = true;
+
+        let totalHarga = harga || 5000; 
 
         try {
-            // Kita tampilkan pesan loading sementara
-            alert("Sedang memuat ulang QRIS untuk " + invoice + "... Mohon tunggu sebentar.");
-            
-            // Kita panggil API buat_qris di Vercel lagi dengan invoice yang sama
             const response = await fetch('/api/buat_qris', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -95,28 +97,22 @@
             const resQris = await response.json();
 
             if (resQris.status === 'sukses') {
-                // Jika sukses, kita arahkan user kembali ke halaman ssh.html 
-                // TETAPI kita bawa data qris_string-nya di URL (menggunakan sessionStorage)
-                // Ini trik supaya ssh.html bisa langsung nampilin QRIS tanpa harus ngisi form lagi
-                
-                // Simpan data QRIS sementara di memori browser
                 sessionStorage.setItem('qris_resume', JSON.stringify({
                     invoice: invoice,
                     qris_string: resQris.qris_string,
-                    total_bayar: resQris.total_bayar,
-                    layanan: 'SSH' // Sesuaikan jika kamu butuh dinamis
+                    total_bayar: resQris.total_bayar
                 }));
-
-                // Lompat ke ssh.html (kita akan modifikasi sedikit ssh.html nanti agar bisa menangkap data ini)
                 window.location.href = 'ssh.html?resume=true';
-
             } else {
                 alert("Gagal memuat ulang QRIS: " + (resQris.alasan || "Silakan buat pesanan baru."));
+                btn.innerHTML = teksAsli;
+                btn.disabled = false;
             }
-
         } catch (error) {
-            console.error("Gagal panggil QRIS ulang:", error);
+            console.error(error);
             alert("Terjadi kesalahan jaringan.");
+            btn.innerHTML = teksAsli;
+            btn.disabled = false;
         }
     };
 
