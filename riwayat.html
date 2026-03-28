@@ -12,7 +12,6 @@
         body { background-color: #0f172a; color: #f8fafc; }
         .card { background-color: #1e293b; border: 1px solid #334155; }
         ::-webkit-scrollbar { display: none; }
-        
         #loading-overlay {
             position: fixed; inset: 0; background-color: #0f172a; z-index: 50;
             display: flex; align-items: center; justify-content: center; flex-direction: column;
@@ -30,7 +29,6 @@
     </div>
 
     <div id="main-content" class="w-full max-w-md space-y-4 relative hidden">
-        
         <div class="flex items-center mb-6 pt-4 sticky top-0 bg-[#0f172a] z-10 pb-4 border-b border-[#334155]">
             <a href="index.html" class="card hover:bg-[#334155] text-slate-300 px-3 py-2 rounded-xl text-xs font-bold mr-4 transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -56,43 +54,67 @@
     </div>
 
 <script>
-    // --- INISIALISASI SUPABASE ---
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentUserId = null;
+    let dataRiwayatGlobal = [];
 
-    // --- FUNGSI UTAMA: CEK AKSES & AMBIL DATA ---
+    // --- FUNGSI GLOBAL ---
+    window.toggleDetail = function(elementId) {
+        const el = document.getElementById(elementId);
+        if(el) {
+            if (el.classList.contains('hidden')) {
+                // Tutup yang lain dulu
+                document.querySelectorAll('[id^="detail-"]').forEach(d => d.classList.add('hidden'));
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+    };
+
+    window.lanjutBayar = function(invoice, event) {
+        event.stopPropagation(); 
+        alert("Fitur bayar ulang untuk invoice " + invoice + " sedang disiapkan!");
+    };
+
+    window.downloadTXT = function(index, event) {
+        event.stopPropagation();
+        const item = dataRiwayatGlobal[index];
+        if (!item) return alert("Data tidak ditemukan.");
+
+        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nServer: ${item.server}\nUsername: ${item.username_vpn || '-'}\nPassword: ${item.password_vpn || '-'}\nHost/IP: ${item.host_vpn || '-'}\nExpired: ${item.expired_vpn || '-'}\n\n=== LINK AKUN ===\n[TLS]\n${item.link_tls || '-'}\n\n[NON-TLS]\n${item.link_ntls || '-'}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
+        
+        const blob = new Blob([isiTeks], { type: 'text/plain' });
+        const anchor = document.createElement('a');
+        anchor.download = `${item.layanan.replace(/\s/g, '')}-${item.username_vpn || 'akun'}.txt`;
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.click();
+    };
+
+
+    // --- FUNGSI UTAMA ---
     async function initRiwayat() {
         try {
-            // 1. Cek Sesi KTP (Login)
             const { data: authData, error: authError } = await db.auth.getSession();
-            
             if (authError || !authData.session) {
                 window.location.href = 'login.html';
                 return;
             } 
             
             currentUserId = authData.session.user.id;
-            
-            // 2. Tampilkan Konten, Hilangkan Loading
             document.getElementById('loading-overlay').style.display = 'none';
             document.getElementById('main-content').classList.remove('hidden');
 
-            // 3. Tarik Data dari Supabase
             await tarikDataRiwayat();
-
         } catch (err) {
             console.error("Gagal inisialisasi riwayat:", err);
             window.location.href = 'login.html';
         }
     }
 
-//bawah
-    let dataRiwayatGlobal = [];
-
-    // FUNGSI TARIK DATA RIWAYAT
     async function tarikDataRiwayat() {
         const container = document.getElementById('list-riwayat');
         container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-8 animate-pulse">Mengambil data dari server...</div>`;
@@ -112,41 +134,31 @@
             }
 
             const waktuSekarang = new Date();
+            dataRiwayatGlobal = [];
             let html = '';
 
-            // Looping data
             for (let i = 0; i < data.length; i++) {
                 let item = data[i];
 
-                // --- SISTEM PENYAPU OTOMATIS (EXPIRED CHECKER) ---
+                // PENYAPU OTOMATIS
                 if (item.status === 'pending') {
-                    // Cek batas bayar (waktu_order + 10 menit)
                     const batasBayar = new Date(item.batas_bayar);
                     if (waktuSekarang > batasBayar) {
-                        // Kalau waktu sekarang sudah melebihi batas bayar, paksa ganti statusnya di layar!
                         item.status = 'expired';
-                        
-                        // Dan diam-diam update ke Supabase di belakang layar
-                        db.from('transaksi_pembelian')
-                          .update({ status: 'expired' })
-                          .eq('id', item.id)
-                          .then(() => console.log('Sistem: Menyapu invoice expired ->', item.no_invoice));
+                        db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id).then(()=>console.log('Sistem: Update expired'));
                     }
                 }
                 
-                dataRiwayatGlobal.push(item); // Masukkan ke data global setelah disapu
+                dataRiwayatGlobal.push(item);
 
-                // Format Waktu
                 const tgl = new Date(item.waktu_order);
                 const formatTgl = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                 const formatJam = tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
                 let warnaStatus, bgStatus, labelStatus, borderKiri, kontenTersembunyi;
 
-                // --- LOGIKA KONTEN TERSEMBUNYI (SAAT CARD DI-KLIK) ---
                 if (item.status === 'success') {
                     warnaStatus = 'text-emerald-400'; bgStatus = 'bg-emerald-400/10'; borderKiri = 'bg-emerald-500'; labelStatus = 'LUNAS / AKTIF';
-                    
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 space-y-2">
                             <div class="bg-[#0f172a] p-3 rounded-xl border border-[#334155]">
@@ -156,15 +168,12 @@
                                 <div class="flex justify-between text-[11px] mt-2 pt-2 border-t border-[#334155]/50"><span class="text-slate-500">Expired</span> <span class="text-yellow-400 font-bold">${item.expired_vpn || '-'}</span></div>
                             </div>
                             <button onclick="downloadTXT(${i}, event)" class="w-full mt-2 bg-indigo-600/20 border border-indigo-500/30 py-2.5 rounded-xl text-xs font-bold text-indigo-400 hover:bg-indigo-600/40 transition flex items-center justify-center">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Download Detail (TXT)
                             </button>
                         </div>
                     `;
                 } else if (item.status === 'pending') {
                     warnaStatus = 'text-amber-400'; bgStatus = 'bg-amber-400/10'; borderKiri = 'bg-amber-500'; labelStatus = 'MENUNGGU PEMBAYARAN';
-                    
-                    // Kalau Pending: Tampilkan info batas bayar & Tombol Bayar
                     let sisaMenit = Math.max(0, Math.floor((new Date(item.batas_bayar) - waktuSekarang) / 60000));
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
@@ -176,7 +185,6 @@
                     `;
                 } else {
                     warnaStatus = 'text-rose-400'; bgStatus = 'bg-rose-400/10'; borderKiri = 'bg-rose-500'; labelStatus = 'BATAL / KADALUARSA';
-                    
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
                             <p class="text-[10px] text-rose-500/80 italic">Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.</p>
@@ -184,53 +192,41 @@
                     `;
                 }
 
-                // --- MERAKIT HTML CARD ---
                 html += `
                 <div class="card p-4 rounded-3xl relative overflow-hidden transition hover:border-indigo-500/30 cursor-pointer group" onclick="toggleDetail('detail-${i}')">
                     <div class="absolute top-0 left-0 w-1 h-full ${borderKiri}"></div>
-                    
                     <div class="flex justify-between items-start mb-3 pl-2 border-b border-[#334155]/50 pb-3">
-                        <div>
-                            <span class="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded-md uppercase tracking-wider">${item.layanan}</span>
-                        </div>
+                        <div><span class="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded-md uppercase tracking-wider">${item.layanan}</span></div>
                         <div class="text-right">
                             <div class="text-[10px] text-slate-400 font-medium">${formatTgl}</div>
                             <div class="text-[9px] text-slate-500">${formatJam} WIB</div>
                         </div>
                     </div>
-                    
                     <div class="pl-2 space-y-1">
                         <div class="text-[11px] text-slate-400 font-mono flex justify-between items-center">
                             <span>INV: ${item.no_invoice.substring(0, 12)}...</span>
                             <svg class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
                         <div class="text-sm font-bold text-slate-200">Server: ${item.server}</div>
-                        
                         <div class="flex justify-between items-end mt-4 pt-2">
                             <div class="text-[15px] text-slate-200 font-bold">Rp ${item.harga.toLocaleString('id-ID')}</div>
                             <span class="text-[9px] font-bold ${warnaStatus} ${bgStatus} px-2.5 py-1 rounded-full tracking-widest">${labelStatus}</span>
                         </div>
                     </div>
-
                     <div id="detail-${i}" class="hidden">
                         ${kontenTersembunyi}
                     </div>
                 </div>
                 `;
             }
-            
             container.innerHTML = html;
-
         } catch (error) {
             console.error("Error tarik data:", error);
             container.innerHTML = `<div class="text-center text-rose-500 text-sm mt-12 font-medium">Gagal memuat riwayat dari server.</div>`;
         }
     }
-    
 
-    // Jalankan otomatis
     initRiwayat();
-
 </script>
 </body>
 </html>
