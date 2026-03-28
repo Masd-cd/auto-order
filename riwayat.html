@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MasD VPNStore - Riwayat Pembelian</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
     <style>
@@ -42,6 +43,21 @@
     </div>
 
 <script>
+        // --- AWAL KODE SATPAM SUPABASE ---
+    const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function cekAkses() {
+        const { data, error } = await db.auth.getSession();
+        // Kalau gak ada KTP (belum login), langsung tendang ke login.html
+        if (error || !data.session) {
+            window.location.href = 'login.html';
+        }
+    }
+    cekAkses(); // Jalankan satpam secara otomatis
+    // --- AKHIR KODE SATPAM SUPABASE ---
+    
     // Fungsi untuk memuat data saat halaman dibuka
     function loadRiwayat() {
         const riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
