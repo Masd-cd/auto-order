@@ -141,17 +141,18 @@
             </button>
         </div>
 
-        <div id="screen-qris" class="screen">
-            <div class="text-center mb-4">
-                <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-1">Total Pembayaran</p>
-                <h3 id="teks-harga-qris" class="text-2xl font-bold text-emerald-400 mb-1">Rp -</h3>
-                <p class="text-[10px] text-slate-500">Sistem otomatis mengecek pembayaran</p>
+        <div id="screen-qris" class="screen space-y-5 text-center p-2 pt-0">
+            <div class="bg-[#0f172a]/50 p-3 rounded-2xl inline-block border border-[#334155]">
+                <p class="text-[11px] text-slate-400 font-medium tracking-wide">Total Tagihan</p>
+                <p id="teks-harga-qris" class="text-3xl font-extrabold text-indigo-400 tracking-tight mt-1">Rp 0</p>
+                
+                <p class="text-[10px] text-rose-400 font-bold tracking-wider mt-2 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20 hidden">
+                    Expired: <span id="waktu-qris">10:00</span> menit
+                </p>
             </div>
             
-            <div class="flex justify-center items-center mb-6 mt-2">
-                <div class="bg-white p-4 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                    <div id="tempat-qris"></div>
-                </div>
+            <div class="flex justify-center p-4 bg-white rounded-3xl w-[280px] h-[280px] mx-auto shadow-xl">
+                <div id="tempat-qris" class="w-full h-full"></div>
             </div>
 
             <div class="text-center">
@@ -357,12 +358,29 @@
         }
     }
 
-    function mulaiTimerQris(orderId, durasiMenit = 10) {
+        function mulaiTimerQris(orderId, durasiMenit = 10) {
         if (qrisTimerInterval) clearInterval(qrisTimerInterval);
+        
+        // 1. Tangkap elemen UI tempat jam hitung mundur
+        const timerDisplay = document.getElementById('waktu-qris'); 
+        if(timerDisplay) timerDisplay.parentElement.classList.remove('hidden');
+
         let waktuTersisa = durasiMenit * 60;
 
         qrisTimerInterval = setInterval(async () => {
             waktuTersisa--;
+
+            // 2. Rumus menghitung menit dan detik
+            let menit = Math.floor(waktuTersisa / 60);
+            let detik = waktuTersisa % 60;
+            
+            // 3. Format angka biar selalu 2 digit (contoh: 09:05)
+            let formatWaktu = `${menit.toString().padStart(2, '0')}:${detik.toString().padStart(2, '0')}`;
+            
+            // 4. Tampilkan update waktu ke layar HTML
+            if(timerDisplay) timerDisplay.innerText = formatWaktu;
+
+            // 5. Kalau waktu habis (0), tendang!
             if (waktuTersisa <= 0) {
                 clearInterval(qrisTimerInterval);
                 await updateStatusTransaksi(orderId, 'expired');
@@ -371,7 +389,7 @@
             }
         }, 1000);
     }
-
+    
     // --- 6. PROSES UTAMA (CHECKOUT PAYDISINI) ---
     async function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
