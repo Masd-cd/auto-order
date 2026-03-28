@@ -61,12 +61,10 @@
     let currentUserId = null;
     let dataRiwayatGlobal = [];
 
-    // --- FUNGSI GLOBAL ---
     window.toggleDetail = function(elementId) {
         const el = document.getElementById(elementId);
         if(el) {
             if (el.classList.contains('hidden')) {
-                // Tutup yang lain dulu
                 document.querySelectorAll('[id^="detail-"]').forEach(d => d.classList.add('hidden'));
                 el.classList.remove('hidden');
             } else {
@@ -76,12 +74,11 @@
     };
 
     window.lanjutBayar = async function(invoice, harga, event) {
-    window.lanjutBayar = async function(invoice, harga, event) {
         event.stopPropagation();
         
-        // Ubah teks tombol jadi loading biar elegan
         const btn = event.currentTarget;
         const teksAsli = btn.innerHTML;
+        // Animasi loading di tombol
         btn.innerHTML = `<svg class="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat QRIS...`;
         btn.disabled = true;
 
@@ -130,8 +127,6 @@
         anchor.click();
     };
 
-
-    // --- FUNGSI UTAMA ---
     async function initRiwayat() {
         try {
             const { data: authData, error: authError } = await db.auth.getSession();
@@ -176,12 +171,11 @@
             for (let i = 0; i < data.length; i++) {
                 let item = data[i];
 
-                // PENYAPU OTOMATIS
                 if (item.status === 'pending') {
                     const batasBayar = new Date(item.batas_bayar);
                     if (waktuSekarang > batasBayar) {
                         item.status = 'expired';
-                        db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id).then(()=>console.log('Sistem: Update expired'));
+                        db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id);
                     }
                 }
                 
