@@ -395,7 +395,10 @@
                 status: 'pending'
             }]);
 
-            if (dbError) throw new Error("Gagal menyimpan transaksi ke database.");
+            if (dbError) {
+                console.error("Error Lengkap Supabase:", dbError);
+                throw new Error("Pesan dari Supabase: " + dbError.message);
+            }
 
             // B. Panggil API PayDisini
             const req = await fetch('/api/buat_qris', {
