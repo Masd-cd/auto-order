@@ -442,19 +442,257 @@
                 const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
                 const u = json.akun.username || json.akun.user || "trial-auto";
                 const p = json.akun.password || json.akun.pass || "1";
+                const exp = "15 Menit";<script>
+    // --- AWAL KODE SATPAM SUPABASE ---
+    const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUserId = null; // Menyimpan ID user yang sedang login
+
+    async function cekAkses() {
+        const { data, error } = await db.auth.getSession();
+        if (error || !data.session) {
+            window.location.href = 'login.html';
+        } else {
+            currentUserId = data.session.user.id; // Simpan ID user
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+    }
+    cekAkses();
+    // --- AKHIR KODE SATPAM SUPABASE ---
+
+    let order = { protocol: 'SSH', serverId: '', serverName: '', duration: '', price: '' };
+    let historyStack = ['screen-server'];
+    let qrisTimerInterval = null; // Menyimpan interval timer
+
+    function showScreen(screenId, title) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+
+        const btnBack = document.getElementById('btn-back');
+        document.getElementById('header-title').innerText = title;
+
+        if (screenId === 'screen-loading' || screenId === 'screen-success') {
+            btnBack.classList.add('hidden');
+        } else {
+            btnBack.classList.remove('hidden');
+        }
+
+        const f = document.getElementById('footer-credit');
+        if(f) {
+            f.style.animation = 'none';
+            void f.offsetWidth;
+            f.style.animation = 'fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+        }
+    }
+
+    function goBack() {
+        if(historyStack.length > 1) {
+            historyStack.pop();
+            const prevScreen = historyStack[historyStack.length - 1];
+            
+            let title = "Pilih Server";
+            if(prevScreen === 'screen-type') title = "Tipe Layanan";
+            if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            
+            showScreen(prevScreen, title);
+        } else {
+            window.location.href = 'index.html';
+        }
+    }
+
+    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
+    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
+    
+    function pilihDurasi(durasi, harga) {
+        order.duration = durasi; order.price = harga;
+        document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">SSH Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-indigo-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
+        historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
+    }
+
+    // Fungsi Update Status di Supabase
+    async function updateStatusTransaksi(orderId, statusBaru) {
+        try {
+            await db.from('transaksi_pembelian')
+                .update({ status: statusBaru })
+                .eq('no_invoice', orderId);
+        } catch (error) {
+            console.error("Gagal update status transaksi:", error);
+        }
+    }
+
+    // Fungsi Timer QRIS (10 Menit)
+    function mulaiTimerQris(orderId, durasiMenit = 10) {
+        // Hapus timer lama jika ada
+        if (qrisTimerInterval) clearInterval(qrisTimerInterval);
+
+        // Tambahkan elemen timer di layar QRIS (kalau belum ada, pastikan kamu bikin ID 'waktu-qris' di HTML-nya nanti)
+        // const timerDisplay = document.getElementById('waktu-qris'); 
+
+        let waktuTersisa = durasiMenit * 60; // Konversi ke detik
+
+        qrisTimerInterval = setInterval(async () => {
+            waktuTersisa--;
+
+            let menit = Math.floor(waktuTersisa / 60);
+            let detik = waktuTersisa % 60;
+            
+            // Format 00:00
+            let formatWaktu = `${menit.toString().padStart(2, '0')}:${detik.toString().padStart(2, '0')}`;
+            
+            // Tampilkan di konsol (nanti bisa disambung ke UI)
+            console.log(`Waktu QRIS: ${formatWaktu}`); 
+            // if(timerDisplay) timerDisplay.innerText = formatWaktu;
+
+            if (waktuTersisa <= 0) {
+                clearInterval(qrisTimerInterval);
+                await updateStatusTransaksi(orderId, 'expired');
+                alert("Waktu pembayaran QRIS telah habis (Expired). Silakan buat pesanan baru.");
+                window.location.href = 'index.html'; // Kembalikan ke beranda
+            }
+        }, 1000);
+    }
+    
+    async function prosesCheckout() {
+        const user = document.getElementById('input-user').value.trim();
+        const pass = document.getElementById('input-pass').value.trim();
+
+        if (!user || !pass) return alert("Data Username dan Password wajib diisi!");
+        if (!currentUserId) return alert("Terjadi kesalahan sesi. Silakan login ulang.");
+
+        const orderId = `SSH-${order.serverId}-${order.duration}-${user}-${pass}-${Date.now()}`;
+        
+        showScreen('screen-loading', 'Membuat QRIS...');
+
+        try {
+            // 1. Simpan Transaksi (Pending) ke Supabase SEBELUM manggil QRIS
+            const { error: dbError } = await db.from('transaksi_pembelian').insert([{
+                id_user: currentUserId,
+                no_invoice: orderId,
+                layanan: 'SSH',
+                server: order.serverName,
+                harga: parseInt(order.price),
+                status: 'pending'
+            }]);
+
+            if (dbError) throw new Error("Gagal menyimpan data transaksi ke database.");
+
+            // 2. Minta QRIS ke PayDisini
+            const req = await fetch('/api/buat_qris', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: orderId, amount: order.price })
+            });
+            const resQris = await req.json();
+
+            if (resQris.status !== 'sukses') {
+                // Kalau gagal bikin QRIS, hapus atau update status jadi error
+                 await updateStatusTransaksi(orderId, 'error_qris');
+                return alert("Gagal memuat QRIS: " + resQris.alasan);
+            }
+            
+            document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(resQris.total_bayar).toLocaleString();
+            document.getElementById('tempat-qris').innerHTML = "";
+            new QRCode(document.getElementById("tempat-qris"), {
+                text: resQris.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            showScreen('screen-qris', 'Scan QRIS');
+            
+            // 3. Mulai Timer 10 Menit
+            mulaiTimerQris(orderId, 10);
+
+        } catch(e) {
+            console.error(e);
+            return alert(e.message || "Error jaringan memuat QRIS");
+        }
+
+        // Cek Pembayaran Berkala
+        let cekPembayaranInterval = setInterval(async () => {
+            try {
+                // Catatan: Pastikan endpoint /api/cek_akun ini mengecek status di PayDisini
+                const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
+                const json = await response.json();
+
+                if (json.status === 'sukses') {
+                    clearInterval(cekPembayaranInterval);
+                    clearInterval(qrisTimerInterval); // Matikan timer QRIS
+                    
+                    // Update status transaksi jadi SUCCESS di Supabase
+                    await updateStatusTransaksi(orderId, 'success');
+
+                    showScreen('screen-success', 'Informasi Akun SSH');
+                    
+                    const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                    const resUser = json.akun.username || json.akun.user || user;
+                    const resPass = json.akun.password || json.akun.pass || pass;
+                    const resExp = json.akun.exp || json.akun.expired || order.duration + " Hari";
+                    
+                    document.getElementById('res-user').innerText = resUser;
+                    document.getElementById('res-pass').innerText = resPass;
+                    document.getElementById('res-host').innerText = domain;
+                    document.getElementById('res-exp').innerText = resExp;
+
+                    document.getElementById('fmt-ws').innerText = `${domain}:80@${resUser}:${resPass}`;
+                    document.getElementById('fmt-tls').innerText = `${domain}:443@${resUser}:${resPass}`;
+
+                    // Fungsi simpanKeRiwayat (LocalStorage) BISA DIHAPUS nanti, tapi biarkan dulu sbg *fallback*
+                    // simpanKeRiwayat("SSH Premium", resUser, domain, resExp, document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, "-");
+                }
+            } catch (e) { console.log("Menunggu validasi QRIS..."); }
+        }, 3000);
+    }
+
+    // Fungsi Copy Text (Tetap)
+    function copyText(elementId) {
+        let textToCopy = document.getElementById(elementId).innerText; 
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const toast = document.getElementById("toast");
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 2000);
+        });
+    }
+
+    // Fungsi Trial (Tetap, belum dimodifikasi untuk simpan ke DB)
+    async function prosesTrial() {
+        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
+            return;
+        }
+
+        showScreen('screen-loading', 'Membuat Akun Trial');
+
+        try {
+            const response = await fetch('/api/buat_trial_ssh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ serverId: order.serverId })
+            });
+            
+            const json = await response.json();
+
+            if (json.status === 'sukses') {
+                localStorage.setItem('masd_trial_date', hariIni);
+
+                showScreen('screen-success', 'Detail Trial SSH');
+                
+                const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                const u = json.akun.username || json.akun.user || "trial-auto";
+                const p = json.akun.password || json.akun.pass || "1";
                 const exp = "15 Menit";
                 
                 document.getElementById('res-user').innerText = u;
                 document.getElementById('res-pass').innerText = p;
                 document.getElementById('res-host').innerText = domain;
                 document.getElementById('res-exp').innerText = exp;
-                simpanKeRiwayat("SSH Trial", u, domain, "15 Menit", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ws').innerText, "-");
-                
 
                 document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
                 document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
             } else {
-                // Munculkan alasan asli dari VPS atau tolakan limit dari Redis ke layar!
                 alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
                 goBack();
             }
@@ -463,12 +701,8 @@
             goBack();
         }
     }
-    function simpanKeRiwayat(tipe, user, host, exp, linkTls, linkNtls, linkGrpc) {
-        let riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
-        riwayat.unshift({ tanggal: new Date().toLocaleString('id-ID'), layanan: tipe, username: user, host: host, expired: exp, tls: linkTls, ntls: linkNtls, grpc: linkGrpc });
-        localStorage.setItem('masd_riwayat', JSON.stringify(riwayat));
-    }
 
+    // Fungsi Download TXT (Tetap)
     function downloadTXT() {
         const u = document.getElementById('res-user').innerText;
         const h = document.getElementById('res-host').innerText;
@@ -484,8 +718,6 @@
         anchor.href = window.URL.createObjectURL(blob);
         anchor.click();
     }
-    
-
 </script>
 </body>
 </html>
