@@ -666,7 +666,232 @@
 
         const hariIni = new Date().toDateString();
         if (localStorage.getItem('masd_trial_date') === hariIni) {
-            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
+<script>
+    // --- 1. INISIALISASI SUPABASE ---
+    const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUserId = null; // Menyimpan ID user yang login
+    let order = { protocol: 'SSH', serverId: '', serverName: '', duration: '', price: '' };
+    let historyStack = ['screen-server'];
+    let qrisTimerInterval = null;
+
+    // --- 2. SISTEM SATPAM ---
+    async function cekAkses() {
+        try {
+            const { data, error } = await db.auth.getSession();
+            if (error || !data.session) {
+                window.location.href = 'login.html';
+            } else {
+                currentUserId = data.session.user.id;
+                
+                // Hilangkan layar hitam muter-muter
+                const overlay = document.getElementById('loading-overlay');
+                if(overlay) overlay.style.display = 'none';
+                
+                // Pastikan layar pilihan server yang muncul pertama
+                showScreen('screen-server', 'Pilih Server');
+            }
+        } catch (err) {
+            window.location.href = 'login.html';
+        }
+    }
+    cekAkses(); // Jalankan pas web dibuka
+
+    // --- 3. NAVIGASI LAYAR ---
+    function showScreen(screenId, title) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const targetScreen = document.getElementById(screenId);
+        if(targetScreen) targetScreen.classList.add('active');
+
+        const btnBack = document.getElementById('btn-back');
+        const headerTitle = document.getElementById('header-title');
+        if(headerTitle) headerTitle.innerText = title;
+
+        if(btnBack) {
+            if (screenId === 'screen-loading' || screenId === 'screen-success') {
+                btnBack.classList.add('hidden');
+            } else {
+                btnBack.classList.remove('hidden');
+            }
+        }
+
+        const f = document.getElementById('footer-credit');
+        if(f) {
+            f.style.animation = 'none';
+            void f.offsetWidth;
+            f.style.animation = 'fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+        }
+    }
+
+    function goBack() {
+        if(historyStack.length > 1) {
+            historyStack.pop();
+            const prevScreen = historyStack[historyStack.length - 1];
+            
+            let title = "Pilih Server";
+            if(prevScreen === 'screen-type') title = "Tipe Layanan";
+            if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            
+            showScreen(prevScreen, title);
+        } else {
+            window.location.href = 'index.html';
+        }
+    }
+
+    // --- 4. PEMILIHAN PESANAN ---
+    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
+    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
+    
+    function pilihDurasi(durasi, harga) {
+        order.duration = durasi; order.price = harga;
+        document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">SSH Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-indigo-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
+        historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
+    }
+
+    // --- 5. FUNGSI DATABASE & TIMER QRIS ---
+    async function updateStatusTransaksi(orderId, statusBaru) {
+        try {
+            await db.from('transaksi_pembelian').update({ status: statusBaru }).eq('no_invoice', orderId);
+        } catch (error) {
+            console.error("Gagal update status transaksi:", error);
+        }
+    }
+
+    function mulaiTimerQris(orderId, durasiMenit = 10) {
+        if (qrisTimerInterval) clearInterval(qrisTimerInterval);
+        let waktuTersisa = durasiMenit * 60;
+
+        qrisTimerInterval = setInterval(async () => {
+            waktuTersisa--;
+            if (waktuTersisa <= 0) {
+                clearInterval(qrisTimerInterval);
+                await updateStatusTransaksi(orderId, 'expired');
+                alert("Waktu pembayaran QRIS telah habis (Expired). Silakan buat pesanan baru.");
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+    }
+
+    // --- 6. PROSES UTAMA (CHECKOUT PAYDISINI) ---
+    async function prosesCheckout() {
+        const user = document.getElementById('input-user').value.trim();
+        const pass = document.getElementById('input-pass').value.trim();
+
+        if (!user || !pass) return alert("Data Username dan Password wajib diisi!");
+        if (!currentUserId) return alert("Kesalahan sesi. Silakan login ulang.");
+
+        const orderId = `SSH-${order.serverId}-${order.duration}-${user}-${pass}-${Date.now()}`;
+        
+        showScreen('screen-loading', 'Membuat QRIS...');
+
+        try {
+            // A. Simpan Bon Tagihan ke Supabase
+            const { error: dbError } = await db.from('transaksi_pembelian').insert([{
+                id_user: currentUserId,
+                no_invoice: orderId,
+                layanan: 'SSH Premium',
+                server: order.serverName,
+                harga: parseInt(order.price),
+                status: 'pending'
+            }]);
+
+            if (dbError) throw new Error("Gagal menyimpan transaksi ke database.");
+
+            // B. Panggil API PayDisini
+            const req = await fetch('/api/buat_qris', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: orderId, amount: order.price })
+            });
+            const resQris = await req.json();
+
+            if (resQris.status !== 'sukses') {
+                 await updateStatusTransaksi(orderId, 'error_qris');
+                return alert("Gagal memuat QRIS: " + resQris.alasan);
+            }
+            
+            // C. Tampilkan QRIS
+            document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(resQris.total_bayar).toLocaleString();
+            document.getElementById('tempat-qris').innerHTML = "";
+            new QRCode(document.getElementById("tempat-qris"), {
+                text: resQris.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            showScreen('screen-qris', 'Scan QRIS');
+            mulaiTimerQris(orderId, 10); // Mulai Hitung Mundur 10 Menit
+
+        } catch(e) {
+            console.error(e);
+            return alert(e.message || "Error jaringan memuat QRIS");
+        }
+
+        // D. Loop Cek Pembayaran Lunas
+        let cekPembayaranInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
+                const json = await response.json();
+
+                if (json.status === 'sukses') {
+                    clearInterval(cekPembayaranInterval);
+                    clearInterval(qrisTimerInterval);
+                    
+                    // Tandai Lunas di Supabase!
+                    await updateStatusTransaksi(orderId, 'success');
+
+                    showScreen('screen-success', 'Informasi Akun SSH');
+                    
+                    const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
+                    const resUser = json.akun.username || json.akun.user || user;
+                    const resPass = json.akun.password || json.akun.pass || pass;
+                    const resExp = json.akun.exp || json.akun.expired || order.duration + " Hari";
+                    
+                    document.getElementById('res-user').innerText = resUser;
+                    document.getElementById('res-pass').innerText = resPass;
+                    document.getElementById('res-host').innerText = domain;
+                    document.getElementById('res-exp').innerText = resExp;
+
+                    document.getElementById('fmt-ws').innerText = `${domain}:80@${resUser}:${resPass}`;
+                    document.getElementById('fmt-tls').innerText = `${domain}:443@${resUser}:${resPass}`;
+                }
+            } catch (e) { console.log("Menunggu validasi QRIS..."); }
+        }, 3000);
+    }
+
+    // --- 7. COPY & DOWNLOAD ---
+    function copyText(elementId) {
+        let textToCopy = document.getElementById(elementId).innerText; 
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const toast = document.getElementById("toast");
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 2000);
+        });
+    }
+
+    function downloadTXT() {
+        const u = document.getElementById('res-user').innerText;
+        const h = document.getElementById('res-host').innerText;
+        const e = document.getElementById('res-exp').innerText;
+        const p = document.getElementById('res-pass').innerText;
+        const tls = document.getElementById('fmt-tls').innerText;
+        const ws = document.getElementById('fmt-ws').innerText;
+
+        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: SSH\nUsername: ${u}\nPassword: ${p}\nHost/IP: ${h}\nExpired: ${e}\n\n=== LINK AKUN ===\n[WS TLS (443)]\n${tls}\n\n[WS NON-TLS (80)]\n${ws}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
+        const blob = new Blob([isiTeks], { type: 'text/plain' });
+        const anchor = document.createElement('a');
+        anchor.download = `SSH-${u}.txt`;
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.click();
+    }
+
+    // --- 8. FUNGSI TRIAL ---
+    async function prosesTrial() {
+        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba besok.");
             return;
         }
 
@@ -678,12 +903,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ serverId: order.serverId })
             });
-            
             const json = await response.json();
 
             if (json.status === 'sukses') {
                 localStorage.setItem('masd_trial_date', hariIni);
-
                 showScreen('screen-success', 'Detail Trial SSH');
                 
                 const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
@@ -706,23 +929,6 @@
             alert("Terjadi kesalahan koneksi.");
             goBack();
         }
-    }
-
-    // Fungsi Download TXT (Tetap)
-    function downloadTXT() {
-        const u = document.getElementById('res-user').innerText;
-        const h = document.getElementById('res-host').innerText;
-        const e = document.getElementById('res-exp').innerText;
-        const p = document.getElementById('res-pass').innerText;
-        const tls = document.getElementById('fmt-tls').innerText;
-        const ws = document.getElementById('fmt-ws').innerText;
-
-        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: SSH\nUsername: ${u}\nPassword: ${p}\nHost/IP: ${h}\nExpired: ${e}\n\n=== LINK AKUN ===\n[WS TLS (443)]\n${tls}\n\n[WS NON-TLS (80)]\n${ws}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
-        const blob = new Blob([isiTeks], { type: 'text/plain' });
-        const anchor = document.createElement('a');
-        anchor.download = `SSH-${u}.txt`;
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
     }
 </script>
 </body>
