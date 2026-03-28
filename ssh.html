@@ -265,22 +265,28 @@
     </div>
 
 <script>
-        // --- AWAL KODE SATPAM SUPABASE ---
+    // --- AWAL KODE SATPAM SUPABASE ---
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function cekAkses() {
-        const { data, error } = await db.auth.getSession();
-        if (error || !data.session) {
+    let currentUserId = null; // Menyimpan ID user yang sedang login
+
+    async function cekAkses() {
+        try {
+            const { data, error } = await db.auth.getSession();
+            if (error || !data.session) {
+                window.location.href = 'login.html';
+            } else {
+                currentUserId = data.session.user.id; // Simpan ID user
+                // Kalau berhasil login, HILANGKAN layar hitamnya!
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
+        } catch (err) {
             window.location.href = 'login.html';
-        } else {
-            // Kalau berhasil login, hilangkan layar hitamnya
-            document.getElementById('loading-overlay').style.display = 'none';
         }
     }
     cekAkses();
- // Jalankan satpam secara otomatis
     // --- AKHIR KODE SATPAM SUPABASE ---
 
     // Data Default, protocol otomatis terisi 'SSH'
