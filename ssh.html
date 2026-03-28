@@ -456,27 +456,43 @@
                     clearInterval(cekPembayaranInterval);
                     clearInterval(qrisTimerInterval);
                     
-                    // Tandai Lunas di Supabase!
-                    await updateStatusTransaksi(orderId, 'success');
-
                     showScreen('screen-success', 'Informasi Akun SSH');
                     
+                    // 1. Tangkap Data Akun dari Vercel
                     const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
                     const resUser = json.akun.username || json.akun.user || user;
                     const resPass = json.akun.password || json.akun.pass || pass;
                     const resExp = json.akun.exp || json.akun.expired || order.duration + " Hari";
                     
+                    const tlsLink = `${domain}:443@${resUser}:${resPass}`;
+                    const ntlsLink = `${domain}:80@${resUser}:${resPass}`;
+
+                    // 2. Tampilkan di Layar Sukses
                     document.getElementById('res-user').innerText = resUser;
                     document.getElementById('res-pass').innerText = resPass;
                     document.getElementById('res-host').innerText = domain;
                     document.getElementById('res-exp').innerText = resExp;
+                    document.getElementById('fmt-ws').innerText = ntlsLink;
+                    document.getElementById('fmt-tls').innerText = tlsLink;
 
-                    document.getElementById('fmt-ws').innerText = `${domain}:80@${resUser}:${resPass}`;
-                    document.getElementById('fmt-tls').innerText = `${domain}:443@${resUser}:${resPass}`;
+                    // 3. SIMPAN KE SUPABASE (Update Status + Detail Akun)
+                    try {
+                        await db.from('transaksi_pembelian')
+                            .update({ 
+                                status: 'success',
+                                username_vpn: resUser,
+                                password_vpn: resPass,
+                                host_vpn: domain,
+                                expired_vpn: resExp,
+                                link_tls: tlsLink,
+                                link_ntls: ntlsLink
+                            })
+                            .eq('no_invoice', orderId);
+                        console.log("Transaksi sukses & akun tersimpan di Supabase!");
+                    } catch (dbErr) {
+                        console.error("Gagal nyimpen detail akun ke DB:", dbErr);
+                    }
                 }
-            } catch (e) { console.log("Menunggu validasi QRIS..."); }
-        }, 3000);
-    }
 
     // --- 7. COPY & DOWNLOAD ---
     function copyText(elementId) {
