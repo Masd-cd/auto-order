@@ -9,24 +9,28 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
     <style>
-                #loading-overlay {
-            position: fixed; inset: 0; background-color: #0f172a; z-index: 50;
-            display: flex; align-items: center; justify-content: center; flex-direction: column;
-                }
         body { background-color: #0f172a; color: #f8fafc; }
         .card { background-color: #1e293b; border: 1px solid #334155; }
         ::-webkit-scrollbar { display: none; }
+        
+        #loading-overlay {
+            position: fixed; inset: 0; background-color: #0f172a; z-index: 50;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+        }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex justify-center p-4 pb-12">
+<body class="font-sans antialiased min-h-screen flex justify-center p-4 pb-12 relative">
+
     <div id="loading-overlay">
         <svg class="animate-spin h-8 w-8 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest animate-pulse">Memuat Data...</p>
     </div>
-    
-    <div class="w-full max-w-md space-y-4 relative">
+
+    <div id="main-content" class="w-full max-w-md space-y-4 relative hidden">
+        
         <div class="flex items-center mb-6 pt-4 sticky top-0 bg-[#0f172a] z-10 pb-4 border-b border-[#334155]">
             <a href="index.html" class="card hover:bg-[#334155] text-slate-300 px-3 py-2 rounded-xl text-xs font-bold mr-4 transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -34,17 +38,16 @@
             <h2 class="text-xl font-bold text-slate-100 tracking-tight">Riwayat Pembelian</h2>
         </div>
 
-        <p class="text-[11px] text-slate-400 mb-4">*Data ini disimpan sementara di memori browser Anda (Local Storage) dan akan hilang jika Anda membersihkan Cache browser.</p>
+        <p class="text-[11px] text-slate-400 mb-4 bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20">
+            *Data riwayat Anda kini tersimpan aman secara permanen di server MasD VPNStore.
+        </p>
 
         <div id="list-riwayat" class="space-y-3">
             </div>
 
-        <button onclick="hapusRiwayat()" class="w-full card hover:bg-rose-600/20 text-rose-500 border border-rose-500/30 font-bold py-3 rounded-2xl transition mt-8 text-xs">
-            Hapus Semua Riwayat
-        </button>
-        <div class="mt-12 mb-8 text-center fade-in-up" style="animation-delay: 0.1s;">
+        <div class="mt-12 mb-8 text-center pt-8 border-t border-[#334155]/50">
             <p class="text-[11px] text-slate-400 font-medium tracking-wide">
-                &copy; Built by MasD VPNStore 2026.
+                &copy; Built by <span class="text-slate-300 font-bold">MasD VPNStore</span> 2026.
             </p>
             <p class="text-[10px] text-slate-500 mt-1">
                 Supported API by Agung Tunneling & Potato Tunneling.
@@ -53,85 +56,130 @@
     </div>
 
 <script>
-        // --- AWAL KODE SATPAM SUPABASE ---
+    // --- INISIALISASI SUPABASE ---
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function cekAkses() {
-        const { data, error } = await db.auth.getSession();
-        if (error || !data.session) {
-            window.location.href = 'login.html';
-        } else {
-            // Kalau berhasil login, hilangkan layar hitamnya
+    let currentUserId = null;
+
+    // --- FUNGSI UTAMA: CEK AKSES & AMBIL DATA ---
+    async function initRiwayat() {
+        try {
+            // 1. Cek Sesi KTP (Login)
+            const { data: authData, error: authError } = await db.auth.getSession();
+            
+            if (authError || !authData.session) {
+                window.location.href = 'login.html';
+                return;
+            } 
+            
+            currentUserId = authData.session.user.id;
+            
+            // 2. Tampilkan Konten, Hilangkan Loading
             document.getElementById('loading-overlay').style.display = 'none';
+            document.getElementById('main-content').classList.remove('hidden');
+
+            // 3. Tarik Data dari Supabase
+            await tarikDataRiwayat();
+
+        } catch (err) {
+            console.error("Gagal inisialisasi riwayat:", err);
+            window.location.href = 'login.html';
         }
     }
-    cekAkses();
-// Jalankan satpam secara otomatis
-    // --- AKHIR KODE SATPAM SUPABASE ---
-    
-    // Fungsi untuk memuat data saat halaman dibuka
-    function loadRiwayat() {
-        const riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
+
+    async function tarikDataRiwayat() {
         const container = document.getElementById('list-riwayat');
-        
-        if(riwayat.length === 0) {
-            container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-12 font-medium">Belum ada riwayat akun di perangkat ini.</div>`;
-            return;
-        }
+        container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-8 animate-pulse">Mengambil data dari server...</div>`;
 
-        let html = '';
-        riwayat.forEach((item, index) => {
-            html += `
-            <div class="card p-4 rounded-3xl relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                <div class="flex justify-between items-start mb-3 pl-2">
-                    <div>
-                        <span class="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-md uppercase tracking-wider">${item.layanan}</span>
+        try {
+            // Tarik data tabel transaksi milik user ini, urutkan dari yang paling baru
+            const { data, error } = await db
+                .from('transaksi_pembelian')
+                .select('*')
+                .eq('id_user', currentUserId)
+                .order('waktu_order', { ascending: false });
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-12 font-medium bg-[#1e293b] py-8 rounded-3xl border border-[#334155]">Belum ada riwayat transaksi.</div>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach((item) => {
+                
+                // Format Tanggal (Contoh: 28 Mar 2026, 20:45)
+                const tgl = new Date(item.waktu_order);
+                const formatTgl = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                const formatJam = tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                // Menentukan Warna Berdasarkan Status
+                let warnaStatus = '';
+                let bgStatus = '';
+                let labelStatus = item.status.toUpperCase();
+                let borderKiri = '';
+
+                if (item.status === 'success') {
+                    warnaStatus = 'text-emerald-400';
+                    bgStatus = 'bg-emerald-400/10';
+                    borderKiri = 'bg-emerald-500';
+                } else if (item.status === 'pending') {
+                    warnaStatus = 'text-amber-400';
+                    bgStatus = 'bg-amber-400/10';
+                    borderKiri = 'bg-amber-500';
+                    labelStatus = 'MENUNGGU PEMBAYARAN';
+                } else if (item.status === 'expired') {
+                    warnaStatus = 'text-rose-400';
+                    bgStatus = 'bg-rose-400/10';
+                    borderKiri = 'bg-rose-500';
+                    labelStatus = 'BATAL / KADALUARSA';
+                } else {
+                    warnaStatus = 'text-slate-400';
+                    bgStatus = 'bg-slate-400/10';
+                    borderKiri = 'bg-slate-500';
+                }
+
+                // Susun HTML Card
+                html += `
+                <div class="card p-4 rounded-3xl relative overflow-hidden transition hover:border-indigo-500/30">
+                    <div class="absolute top-0 left-0 w-1 h-full ${borderKiri}"></div>
+                    
+                    <div class="flex justify-between items-start mb-3 pl-2 border-b border-[#334155]/50 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded-md uppercase tracking-wider">${item.layanan}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-400 font-medium">${formatTgl}</div>
+                            <div class="text-[9px] text-slate-500">${formatJam} WIB</div>
+                        </div>
                     </div>
-                    <span class="text-[10px] text-slate-500 font-medium">${item.tanggal}</span>
+                    
+                    <div class="pl-2 space-y-1">
+                        <div class="text-[11px] text-slate-400 font-mono">INV: ${item.no_invoice.substring(0, 15)}...</div>
+                        <div class="text-sm font-bold text-slate-200">Server: ${item.server}</div>
+                        
+                        <div class="flex justify-between items-end mt-4 pt-2">
+                            <div class="text-[15px] text-slate-200 font-bold">Rp ${item.harga.toLocaleString('id-ID')}</div>
+                            <span class="text-[9px] font-bold ${warnaStatus} ${bgStatus} px-2.5 py-1 rounded-full tracking-widest">${labelStatus}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="pl-2 space-y-1 mb-4">
-                    <div class="text-sm font-bold text-slate-200 font-mono">${item.username}</div>
-                    <div class="text-[11px] text-slate-400">Host: ${item.host}</div>
-                    <div class="text-[11px] text-slate-400">Expired: <span class="text-yellow-400">${item.expired}</span></div>
-                </div>
-                <div class="pl-2">
-                    <button onclick="downloadLagi(${index})" class="w-full bg-[#0f172a] border border-[#334155] py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-[#334155] transition flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Download TXT
-                    </button>
-                </div>
-            </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
+                `;
+            });
+            container.innerHTML = html;
 
-    // Fungsi untuk mendownload ulang file TXT
-    function downloadLagi(index) {
-        const riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
-        const item = riwayat[index];
-        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nUsername: ${item.username}\nHost/IP: ${item.host}\nExpired: ${item.expired}\n\n=== LINK AKUN ===\n[TLS]\n${item.tls}\n\n[NON-TLS]\n${item.ntls}\n\n[gRPC]\n${item.grpc}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
-        
-        const blob = new Blob([isiTeks], { type: 'text/plain' });
-        const anchor = document.createElement('a');
-        anchor.download = `${item.layanan.replace(/\s/g, '')}-${item.username}.txt`;
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
-    }
-
-    // Fungsi menghapus semua data
-    function hapusRiwayat() {
-        if(confirm("Yakin ingin menghapus semua riwayat di perangkat ini?")) {
-            localStorage.removeItem('masd_riwayat');
-            loadRiwayat();
+        } catch (error) {
+            console.error("Error tarik data:", error);
+            container.innerHTML = `<div class="text-center text-rose-500 text-sm mt-12 font-medium">Gagal memuat riwayat dari server.</div>`;
         }
     }
 
-    // Jalankan fungsi saat web pertama kali terbuka
-    window.onload = loadRiwayat;
+    // Jalankan otomatis
+    initRiwayat();
+
 </script>
 </body>
 </html>
