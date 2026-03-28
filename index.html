@@ -112,27 +112,40 @@
     // Inisialisasi Supabase
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // SISTEM SATPAM (Session Checker)
+        // SISTEM SATPAM (Session Checker & Ambil Nama User)
     async function cekLoginStatus() {
         try {
-            // Ambil sesi login dari memori browser
-            const { data, error } = await db.auth.getSession();
+            const { data: authData, error: authError } = await db.auth.getSession();
             
-            if (error || !data.session) {
-                // Kalau KTP nggak ada/kadaluarsa, tendang ke halaman login
+            if (authError || !authData.session) {
+                // Tendang ke login kalau gak ada sesi
                 window.location.href = 'login.html';
+                return; // Stop eksekusi kode di bawahnya
+            } 
+            
+            // KTP Valid! Sekarang kita ambil namanya dari tabel profil_pengguna
+            const userId = authData.session.user.id;
+            const { data: profilData, error: profilError } = await db
+                .from('profil_pengguna')
+                .select('nama_lengkap')
+                .eq('id', userId)
+                .single(); // Ambil satu data saja
+
+            // Tampilkan halaman
+            document.getElementById('loading-overlay').style.display = 'none';
+            document.getElementById('main-content').classList.remove('hidden');
+            
+            // Tampilkan Sapaan (Nama atau Email kalau namanya gagal diambil)
+            const sapaan = document.getElementById('teks-sapaan');
+            if (profilData && profilData.nama_lengkap) {
+                sapaan.innerText = `Halo, ${profilData.nama_lengkap}!`;
             } else {
-                // Kalau KTP valid, tampilkan konten toko
-                document.getElementById('loading-overlay').style.display = 'none';
-                document.getElementById('main-content').classList.remove('hidden');
-                
-                // Bonus: Tampilkan email user di header
-                const userEmail = data.session.user.email;
-                const sapaan = document.getElementById('teks-sapaan');
-                sapaan.innerText = `Halo, ${userEmail}`;
-                sapaan.classList.remove('hidden');
+                sapaan.innerText = `Halo, ${authData.session.user.email}`;
             }
+            sapaan.classList.remove('hidden');
+            
         } catch (err) {
+            console.error("Error cek sesi:", err);
             window.location.href = 'login.html';
         }
     }
