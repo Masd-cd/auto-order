@@ -111,10 +111,32 @@
                 return;
             }
 
-            dataRiwayatGlobal = data;
+            const waktuSekarang = new Date();
             let html = '';
 
-            data.forEach((item, index) => {
+            // Looping data
+            for (let i = 0; i < data.length; i++) {
+                let item = data[i];
+
+                // --- SISTEM PENYAPU OTOMATIS (EXPIRED CHECKER) ---
+                if (item.status === 'pending') {
+                    // Cek batas bayar (waktu_order + 10 menit)
+                    const batasBayar = new Date(item.batas_bayar);
+                    if (waktuSekarang > batasBayar) {
+                        // Kalau waktu sekarang sudah melebihi batas bayar, paksa ganti statusnya di layar!
+                        item.status = 'expired';
+                        
+                        // Dan diam-diam update ke Supabase di belakang layar
+                        db.from('transaksi_pembelian')
+                          .update({ status: 'expired' })
+                          .eq('id', item.id)
+                          .then(() => console.log('Sistem: Menyapu invoice expired ->', item.no_invoice));
+                    }
+                }
+                
+                dataRiwayatGlobal.push(item); // Masukkan ke data global setelah disapu
+
+                // Format Waktu
                 const tgl = new Date(item.waktu_order);
                 const formatTgl = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                 const formatJam = tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -125,7 +147,6 @@
                 if (item.status === 'success') {
                     warnaStatus = 'text-emerald-400'; bgStatus = 'bg-emerald-400/10'; borderKiri = 'bg-emerald-500'; labelStatus = 'LUNAS / AKTIF';
                     
-                    // Kalau Success: Tampilkan Detail Akun
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 space-y-2">
                             <div class="bg-[#0f172a] p-3 rounded-xl border border-[#334155]">
@@ -134,7 +155,7 @@
                                 <div class="flex justify-between text-[11px] mb-1"><span class="text-slate-500">Host / IP</span> <span class="font-mono text-slate-200 font-bold">${item.host_vpn || '-'}</span></div>
                                 <div class="flex justify-between text-[11px] mt-2 pt-2 border-t border-[#334155]/50"><span class="text-slate-500">Expired</span> <span class="text-yellow-400 font-bold">${item.expired_vpn || '-'}</span></div>
                             </div>
-                            <button onclick="downloadTXT(${index}, event)" class="w-full mt-2 bg-indigo-600/20 border border-indigo-500/30 py-2.5 rounded-xl text-xs font-bold text-indigo-400 hover:bg-indigo-600/40 transition flex items-center justify-center">
+                            <button onclick="downloadTXT(${i}, event)" class="w-full mt-2 bg-indigo-600/20 border border-indigo-500/30 py-2.5 rounded-xl text-xs font-bold text-indigo-400 hover:bg-indigo-600/40 transition flex items-center justify-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Download Detail (TXT)
                             </button>
@@ -143,10 +164,11 @@
                 } else if (item.status === 'pending') {
                     warnaStatus = 'text-amber-400'; bgStatus = 'bg-amber-400/10'; borderKiri = 'bg-amber-500'; labelStatus = 'MENUNGGU PEMBAYARAN';
                     
-                    // Kalau Pending: Tampilkan Tombol Bayar Ulang (Lanjut ke PayDisini)
+                    // Kalau Pending: Tampilkan info batas bayar & Tombol Bayar
+                    let sisaMenit = Math.max(0, Math.floor((new Date(item.batas_bayar) - waktuSekarang) / 60000));
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
-                            <p class="text-[10px] text-slate-400 mb-3 leading-relaxed">Selesaikan pembayaran sebelum waktu habis agar pesanan Anda dapat diproses otomatis.</p>
+                            <p class="text-[10px] text-slate-400 mb-2 leading-relaxed">Waktu tersisa: <span class="text-rose-400 font-bold">${sisaMenit} Menit</span>. Segera selesaikan pembayaran.</p>
                             <button onclick="lanjutBayar('${item.no_invoice}', event)" class="w-full bg-amber-500 hover:bg-amber-600 text-[#0f172a] font-extrabold py-2.5 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
                                 Lanjutkan Pembayaran (QRIS)
                             </button>
@@ -155,7 +177,6 @@
                 } else {
                     warnaStatus = 'text-rose-400'; bgStatus = 'bg-rose-400/10'; borderKiri = 'bg-rose-500'; labelStatus = 'BATAL / KADALUARSA';
                     
-                    // Kalau Expired: Tampilkan Pesan Batal
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
                             <p class="text-[10px] text-rose-500/80 italic">Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.</p>
@@ -165,7 +186,7 @@
 
                 // --- MERAKIT HTML CARD ---
                 html += `
-                <div class="card p-4 rounded-3xl relative overflow-hidden transition hover:border-indigo-500/30 cursor-pointer group" onclick="toggleDetail('detail-${index}')">
+                <div class="card p-4 rounded-3xl relative overflow-hidden transition hover:border-indigo-500/30 cursor-pointer group" onclick="toggleDetail('detail-${i}')">
                     <div class="absolute top-0 left-0 w-1 h-full ${borderKiri}"></div>
                     
                     <div class="flex justify-between items-start mb-3 pl-2 border-b border-[#334155]/50 pb-3">
@@ -179,7 +200,7 @@
                     </div>
                     
                     <div class="pl-2 space-y-1">
-                        <div class="text-[11px] text-slate-400 font-mono flex justify-between">
+                        <div class="text-[11px] text-slate-400 font-mono flex justify-between items-center">
                             <span>INV: ${item.no_invoice.substring(0, 12)}...</span>
                             <svg class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
@@ -191,12 +212,12 @@
                         </div>
                     </div>
 
-                    <div id="detail-${index}" class="hidden">
+                    <div id="detail-${i}" class="hidden">
                         ${kontenTersembunyi}
                     </div>
                 </div>
                 `;
-            });
+            }
             
             container.innerHTML = html;
 
@@ -205,48 +226,7 @@
             container.innerHTML = `<div class="text-center text-rose-500 text-sm mt-12 font-medium">Gagal memuat riwayat dari server.</div>`;
         }
     }
-
-    // --- FUNGSI KLIK CARD UNTUK BUKA/TUTUP DETAIL ---
-    function toggleDetail(elementId) {
-        const el = document.getElementById(elementId);
-        if (el.classList.contains('hidden')) {
-            // Tutup semua detail yang lain dulu (opsional, biar rapi)
-            document.querySelectorAll('[id^="detail-"]').forEach(d => d.classList.add('hidden'));
-            // Buka yang di-klik
-            el.classList.remove('hidden');
-        } else {
-            // Tutup jika sudah terbuka
-            el.classList.add('hidden');
-        }
-    }
-
-    // --- FUNGSI LANJUT BAYAR (DUMMY SEMENTARA) ---
-    function lanjutBayar(invoice, event) {
-        event.stopPropagation(); // Biar pas klik tombol, card-nya ga ikutan nutup
-        alert("Nanti ini akan diarahkan ke halaman QRIS untuk Invoice: " + invoice);
-        // Nanti kita arahkan ke API Vercel untuk manggil ulang link QRIS PayDisini
-    }
-
-    // --- FUNGSI DOWNLOAD TXT (SAMA SEPERTI SEBELUMNYA) ---
-    function downloadTXT(index, event) {
-        event.stopPropagation(); // Mencegah card tertutup saat tombol diklik
-        const item = dataRiwayatGlobal[index];
-        if (!item) return alert("Data tidak ditemukan.");
-
-        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nServer: ${item.server}\nUsername: ${item.username_vpn}\nPassword: ${item.password_vpn}\nHost/IP: ${item.host_vpn}\nExpired: ${item.expired_vpn}\n\n=== LINK AKUN ===\n[TLS]\n${item.link_tls}\n\n[NON-TLS]\n${item.link_ntls}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
-        
-        const blob = new Blob([isiTeks], { type: 'text/plain' });
-        const anchor = document.createElement('a');
-        anchor.download = `${item.layanan.replace(/\s/g, '')}-${item.username_vpn}.txt`;
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
-    }
     
-     catch (error) {
-            console.error("Error tarik data:", error);
-            container.innerHTML = `<div class="text-center text-rose-500 text-sm mt-12 font-medium">Gagal memuat riwayat dari server.</div>`;
-        }
-    }
 
     // Jalankan otomatis
     initRiwayat();
