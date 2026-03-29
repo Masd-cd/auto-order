@@ -61,6 +61,7 @@
     let currentUserId = null;
     let dataRiwayatGlobal = [];
 
+    // --- FUNGSI GLOBAL ---
     window.toggleDetail = function(elementId) {
         const el = document.getElementById(elementId);
         if(el) {
@@ -78,7 +79,6 @@
         
         const btn = event.currentTarget;
         const teksAsli = btn.innerHTML;
-        // Animasi loading di tombol
         btn.innerHTML = `<svg class="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat QRIS...`;
         btn.disabled = true;
 
@@ -127,6 +127,32 @@
         anchor.click();
     };
 
+    // --- FUNGSI BARU: HAPUS RIWAYAT KADALUARSA ---
+    window.hapusRiwayat = async function(id, event) {
+        event.stopPropagation(); // Biar card ga ikut nutup pas diklik
+        
+        if(confirm("Yakin ingin menghapus riwayat kadaluarsa ini dari daftar?")) {
+            const btn = event.currentTarget;
+            const teksAsli = btn.innerHTML;
+            btn.innerHTML = "Menghapus...";
+            btn.disabled = true;
+
+            try {
+                // Trik: Ubah status jadi 'deleted' (disembunyikan dari layar)
+                await db.from('transaksi_pembelian').update({ status: 'deleted' }).eq('id', id);
+                
+                // Refresh list riwayat
+                tarikDataRiwayat();
+            } catch (err) {
+                console.error("Gagal hapus:", err);
+                alert("Gagal menghapus riwayat.");
+                btn.innerHTML = teksAsli;
+                btn.disabled = false;
+            }
+        }
+    };
+
+    // --- FUNGSI UTAMA ---
     async function initRiwayat() {
         try {
             const { data: authData, error: authError } = await db.auth.getSession();
@@ -151,10 +177,12 @@
         container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-8 animate-pulse">Mengambil data dari server...</div>`;
 
         try {
+            // TARIK DATA TAPI KECUALIKAN YANG STATUSNYA 'deleted'
             const { data, error } = await db
                 .from('transaksi_pembelian')
                 .select('*')
                 .eq('id_user', currentUserId)
+                .neq('status', 'deleted') 
                 .order('waktu_order', { ascending: false });
 
             if (error) throw error;
@@ -217,7 +245,12 @@
                     warnaStatus = 'text-rose-400'; bgStatus = 'bg-rose-400/10'; borderKiri = 'bg-rose-500'; labelStatus = 'BATAL / KADALUARSA';
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
-                            <p class="text-[10px] text-rose-500/80 italic">Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.</p>
+                            <p class="text-[10px] text-rose-500/80 italic mb-3">Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.</p>
+                            
+                            <button onclick="hapusRiwayat('${item.id}', event)" class="w-full bg-rose-500/10 border border-rose-500/30 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-500/20 transition flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                Hapus Riwayat Ini
+                            </button>
                         </div>
                     `;
                 }
