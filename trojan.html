@@ -10,10 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-                #loading-overlay {
+        #loading-overlay {
             position: fixed; inset: 0; background-color: #0f172a; z-index: 50;
             display: flex; align-items: center; justify-content: center; flex-direction: column;
-                }
+        }
         
         body { background-color: #0f172a; color: #f8fafc; }
         .card { background-color: #1e293b; border: 1px solid #334155; }
@@ -39,7 +39,7 @@
     
     <div class="w-full max-w-md space-y-4 relative">
         <div id="sub-header" class="flex items-center mb-6 pt-4 sticky top-0 bg-[#0f172a] z-10 pb-4 border-b border-[#334155]">
-            <button id="btn-back" onclick="goBack()" class="card hover:bg-[#334155] text-slate-300 px-3 py-2 rounded-xl text-xs font-bold mr-4 transition shadow-sm">
+            <button id="btn-back" onclick="goBack()" class="card hover:bg-[#334155] text-slate-300 px-3 py-2 rounded-xl text-xs font-bold mr-4 transition shadow-sm hidden">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
             </button>
             <h2 id="header-title" class="text-xl font-bold text-slate-100 tracking-tight">Pilih Server</h2>
@@ -105,16 +105,18 @@
             <button onclick="prosesCheckout()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-4 rounded-2xl transition shadow-[0_0_15px_rgba(244,63,94,0.3)]">Bayar QRIS</button>
         </div>
 
-        <div id="screen-qris" class="screen">
-            <div class="text-center mb-4">
+        <div id="screen-qris" class="screen text-center">
+            <div class="bg-[#0f172a]/50 p-3 rounded-2xl inline-block border border-[#334155] mb-4">
                 <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-1">Total Pembayaran</p>
                 <h3 id="teks-harga-qris" class="text-2xl font-bold text-emerald-400 mb-1">Rp -</h3>
-                <p class="text-[10px] text-slate-500">Sistem otomatis mengecek pembayaran</p>
+                <p class="text-[10px] text-rose-400 font-bold tracking-wider mt-2 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20 hidden">
+                    Expired: <span id="waktu-qris">10:00</span> menit
+                </p>
             </div>
             
             <div class="flex justify-center items-center mb-6 mt-2">
-                <div class="bg-white p-4 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                    <div id="tempat-qris"></div>
+                <div class="bg-white p-4 rounded-3xl shadow-[0_0_20px_rgba(255,255,255,0.2)] w-[280px] h-[280px]">
+                    <div id="tempat-qris" class="w-full h-full"></div>
                 </div>
             </div>
 
@@ -125,11 +127,11 @@
                 </div>
             </div>
             
-            <button onclick="goBack()" class="w-full card hover:bg-[#334155] text-slate-300 font-bold py-3 rounded-2xl transition mt-4 text-xs border border-[#334155]">Batalkan Pesanan</button>
+            <button onclick="window.location.href='index.html'" class="w-full card hover:bg-[#334155] text-slate-300 font-bold py-3 rounded-2xl transition mt-6 text-xs border border-[#334155]">Batalkan Pesanan</button>
         </div>
         
         <div id="screen-loading" class="screen">
-            <div class="text-center mt-16"><div class="w-16 h-16 card rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse">⚙️</div><h3 class="text-xl font-bold text-white mb-2">Memproses Pesanan</h3><p class="text-sm text-rose-400 animate-pulse">Sedang memverifikasi pembayaran...</p></div>
+            <div class="text-center mt-16"><div class="w-16 h-16 card rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 animate-pulse">⚙️</div><h3 class="text-xl font-bold text-white mb-2">Memproses Pesanan</h3><p class="text-sm text-rose-400 animate-pulse">Harap tunggu sebentar...</p></div>
         </div>
 
         <div id="screen-success" class="screen">
@@ -190,11 +192,6 @@
             </div>
 
             <div class="space-y-3 mt-4">
-                <button onclick="downloadTXT()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center justify-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Download Detail Akun (.txt)
-                </button>
-
                 <a href="index.html" class="flex items-center justify-center w-full bg-[#1e293b] border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-3.5 rounded-2xl transition text-sm">
                     Kembali ke Menu Utama
                 </a>
@@ -212,50 +209,65 @@
             </p>
         </div>
     </div>
+
 <script>
-        // --- AWAL KODE SATPAM SUPABASE ---
+    // --- 1. INISIALISASI SUPABASE ---
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function cekAkses() {
-        const { data, error } = await db.auth.getSession();
-        if (error || !data.session) {
-            window.location.href = 'login.html';
-        } else {
-            // Kalau berhasil login, hilangkan layar hitamnya
-            document.getElementById('loading-overlay').style.display = 'none';
-        }
-    }
-    cekAkses();
- // Jalankan satpam secara otomatis
-    // --- AKHIR KODE SATPAM SUPABASE ---
-
+    let currentUserId = null; 
     let order = { protocol: 'TROJAN', serverId: '', serverName: '', duration: '', price: '' };
     let historyStack = ['screen-server'];
+    let qrisTimerInterval = null;
 
-        function showScreen(screenId, title) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-
-        const btnBack = document.getElementById('btn-back');
-        document.getElementById('header-title').innerText = title;
-
-        if (screenId === 'screen-loading' || screenId === 'screen-success') {
-            btnBack.classList.add('hidden');
-        } else {
-            btnBack.classList.remove('hidden');
-        }
-
-        // --- PELATUK ANIMASI FOOTER ---
-        const footer = document.getElementById('footer-credit');
-        if (footer) {
-            footer.classList.remove('fade-in-up');
-            void footer.offsetWidth; // Ini trik ajaib untuk me-reset animasi
-            footer.classList.add('fade-in-up');
+    // --- 2. SISTEM SATPAM CEK LOGIN ---
+    async function cekAkses() {
+        try {
+            const { data, error } = await db.auth.getSession();
+            if (error || !data.session) {
+                window.location.href = 'login.html';
+            } else {
+                currentUserId = data.session.user.id;
+                const overlay = document.getElementById('loading-overlay');
+                if(overlay) overlay.style.display = 'none';
+                showScreen('screen-server', 'Pilih Server');
+                
+                setTimeout(cekResumeQris, 500);
+            }
+        } catch (err) {
+            window.location.href = 'login.html';
         }
     }
-function goBack() {
+    cekAkses(); 
+
+    // --- 3. NAVIGASI LAYAR ---
+    function showScreen(screenId, title) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const targetScreen = document.getElementById(screenId);
+        if(targetScreen) targetScreen.classList.add('active');
+
+        const btnBack = document.getElementById('btn-back');
+        const headerTitle = document.getElementById('header-title');
+        if(headerTitle) headerTitle.innerText = title;
+
+        if(btnBack) {
+            if (screenId === 'screen-server' || screenId === 'screen-loading' || screenId === 'screen-success') {
+                btnBack.classList.add('hidden');
+            } else {
+                btnBack.classList.remove('hidden');
+            }
+        }
+
+        const f = document.getElementById('footer-credit');
+        if(f) {
+            f.style.animation = 'none';
+            void f.offsetWidth;
+            f.style.animation = 'fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+        }
+    }
+
+    function goBack() {
         if(historyStack.length > 1) {
             historyStack.pop();
             const prevScreen = historyStack[historyStack.length - 1];
@@ -263,6 +275,7 @@ function goBack() {
             let title = "Pilih Server";
             if(prevScreen === 'screen-type') title = "Tipe Layanan";
             if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            if(prevScreen === 'screen-input') title = "Konfigurasi Akun";
             
             showScreen(prevScreen, title);
         } else {
@@ -270,119 +283,160 @@ function goBack() {
         }
     }
 
-    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Layanan'); }
-    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Durasi'); } }
-    function pilihDurasi(durasi, harga) { 
-        order.duration = durasi; order.price = harga; 
+    // --- 4. PEMILIHAN PESANAN ---
+    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
+    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
+    
+    function pilihDurasi(durasi, harga) {
+        order.duration = durasi; order.price = harga;
         document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">Trojan Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-rose-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
+    // --- 5. FUNGSI DATABASE & TIMER QRIS ---
+    async function updateStatusTransaksi(orderId, statusBaru) {
+        try { await db.from('transaksi_pembelian').update({ status: statusBaru }).eq('no_invoice', orderId); } catch (e) { console.error(e); }
+    }
+
+    function mulaiTimerQris(orderId, durasiMenit = 10) {
+        if (qrisTimerInterval) clearInterval(qrisTimerInterval);
+        const timerDisplay = document.getElementById('waktu-qris'); 
+        if(timerDisplay) timerDisplay.parentElement.classList.remove('hidden');
+
+        let waktuTersisa = durasiMenit * 60;
+        qrisTimerInterval = setInterval(async () => {
+            waktuTersisa--;
+            let menit = Math.floor(waktuTersisa / 60);
+            let detik = waktuTersisa % 60;
+            if(timerDisplay) timerDisplay.innerText = `${menit.toString().padStart(2, '0')}:${detik.toString().padStart(2, '0')}`;
+
+            if (waktuTersisa <= 0) {
+                clearInterval(qrisTimerInterval);
+                await updateStatusTransaksi(orderId, 'expired');
+                alert("Waktu pembayaran habis. Silakan buat pesanan baru.");
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+    }
+
+    // --- 6. PENANGKAP LANJUT BAYAR DARI RIWAYAT ---
+    function cekResumeQris() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('resume') === 'true') {
+            const dataResume = JSON.parse(sessionStorage.getItem('qris_resume'));
+            if (dataResume) {
+                document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(dataResume.total_bayar).toLocaleString();
+                document.getElementById('tempat-qris').innerHTML = "";
+                new QRCode(document.getElementById("tempat-qris"), {
+                    text: dataResume.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                showScreen('screen-qris', 'Scan QRIS');
+                mulaiTimerQris(dataResume.invoice, 10);
+                
+                let cekPembayaranResume = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/api/cek_akun?order_id=${dataResume.invoice}`);
+                        const json = await res.json();
+                        if (json.status === 'sukses') {
+                            clearInterval(cekPembayaranResume); clearInterval(qrisTimerInterval);
+                            
+                            const akun = json.akun;
+                            const resUser = akun.username || akun.remarks || "user-" + Math.floor(Math.random()*1000);
+                            const resHost = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                            const resExp = akun.expired || akun.exp || "Aktif";
+                            const tlsLink = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
+                            const grpcLink = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
+
+                            document.getElementById('res-user').innerText = resUser;
+                            document.getElementById('res-host').innerText = resHost;
+                            document.getElementById('res-exp').innerText = resExp;
+                            document.getElementById('fmt-tls').innerText = tlsLink;
+                            document.getElementById('fmt-grpc').innerText = grpcLink;
+                            showScreen('screen-success', 'Informasi Akun Trojan');
+
+                            // UPDATE DATABASE DENGAN KOLOM GRPC
+                            await db.from('transaksi_pembelian')
+                                .update({ status: 'success', username_vpn: resUser, password_vpn: resUser, host_vpn: resHost, expired_vpn: resExp, link_tls: tlsLink, link_ntls: "-", link_grpc: grpcLink })
+                                .eq('no_invoice', dataResume.invoice);
+                        }
+                    } catch (e) {}
+                }, 3000);
+                sessionStorage.removeItem('qris_resume'); return true; 
+            }
+        } return false;
+    }
+
+    // --- 7. PROSES UTAMA (CHECKOUT PAYDISINI) ---
     async function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
-        if (!user) return alert("Username wajib diisi!");
+        if (!user) return alert("Data Username wajib diisi!");
+        if (!currentUserId) return alert("Sesi login tidak valid.");
+
         const orderId = `TROJAN-${order.serverId}-${order.duration}-${user}-123-${Date.now()}`;
         showScreen('screen-loading', 'Membuat QRIS...');
 
         try {
+            const { error: dbError } = await db.from('transaksi_pembelian').insert([{
+                id_user: currentUserId, no_invoice: orderId, layanan: 'Trojan Premium', server: order.serverName, harga: parseInt(order.price), status: 'pending'
+            }]);
+            if (dbError) throw new Error("Gagal menyimpan transaksi ke database.");
+
             const req = await fetch('/api/buat_qris', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ order_id: orderId, amount: order.price })
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ order_id: orderId, amount: order.price })
             });
             const resQris = await req.json();
 
-            if (resQris.status !== 'sukses') return alert("Gagal memuat QRIS: " + resQris.alasan);
+            if (resQris.status !== 'sukses') {
+                 await updateStatusTransaksi(orderId, 'error_qris'); return alert("Gagal memuat QRIS.");
+            }
             
             document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(resQris.total_bayar).toLocaleString();
             document.getElementById('tempat-qris').innerHTML = "";
-            new QRCode(document.getElementById("tempat-qris"), {
-                text: resQris.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
-            });
+            new QRCode(document.getElementById("tempat-qris"), { text: resQris.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+            
             showScreen('screen-qris', 'Scan QRIS');
-        } catch(e) {
-            return alert("Error jaringan memuat QRIS");
-        }
-        let cek = setInterval(async () => {
+            mulaiTimerQris(orderId, 10);
+
+        } catch(e) { return alert(e.message || "Error jaringan memuat QRIS"); }
+
+        let cekPembayaranInterval = setInterval(async () => {
             try {
-                const res = await fetch(`/api/cek_akun?order_id=${orderId}`);
-                const json = await res.json();
+                const response = await fetch(`/api/cek_akun?order_id=${orderId}`);
+                const json = await response.json();
+
                 if (json.status === 'sukses') {
-                    clearInterval(cek); showScreen('screen-success', 'Detail Akun Trojan');
+                    clearInterval(cekPembayaranInterval); clearInterval(qrisTimerInterval);
                     
                     const akun = json.akun;
-                    document.getElementById('res-user').innerText = akun.username || akun.remarks || user;
-                    document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
-                    document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
-                    simpanKeRiwayat("Trojan Premium", akun.username || user, akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id", order.duration + " Hari", document.getElementById('fmt-tls').innerText, "-", document.getElementById('fmt-grpc').innerText);
-                    
-                    
-                    document.getElementById('fmt-tls').innerText = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
-                    document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
+                    const resUser = akun.username || akun.remarks || user;
+                    const resHost = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                    const resExp = akun.expired || akun.exp || order.duration + " Hari";
+                    const tlsLink = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
+                    const grpcLink = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
+
+                    document.getElementById('res-user').innerText = resUser;
+                    document.getElementById('res-host').innerText = resHost;
+                    document.getElementById('res-exp').innerText = resExp;
+                    document.getElementById('fmt-tls').innerText = tlsLink;
+                    document.getElementById('fmt-grpc').innerText = grpcLink;
+                    showScreen('screen-success', 'Informasi Akun Trojan');
+
+                    // UPDATE DATABASE DENGAN KOLOM GRPC
+                    await db.from('transaksi_pembelian')
+                        .update({ status: 'success', username_vpn: resUser, password_vpn: resUser, host_vpn: resHost, expired_vpn: resExp, link_tls: tlsLink, link_ntls: "-", link_grpc: grpcLink })
+                        .eq('no_invoice', orderId);
                 }
             } catch (e) {}
         }, 3000);
     }
 
-    async function prosesTrial() {
-        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
-
-        // GEMBOK LEVEL 1: Cek ingatan Browser (Berdasarkan Tanggal Hari Ini)
-        const hariIni = new Date().toDateString();
-        if (localStorage.getItem('masd_trial_date') === hariIni) {
-            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
-            return; // Hentikan proses, jangan lanjut ke server
-        }
-
-        showScreen('screen-loading', 'Membuat Akun Trial');
-
-        try {
-            // Tembak file api/buat_trial_trojan.js (Yang sudah dipasang Gembok Level 2 Redis)
-            const response = await fetch('/api/buat_trial_trojan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ serverId: order.serverId })
-            });
-            
-            const json = await response.json();
-
-            if (json.status === 'sukses') {
-                // KUNCI BROWSER: Simpan tanggal hari ini ke ingatan browser
-                localStorage.setItem('masd_trial_date', hariIni);
-
-                showScreen('screen-success', 'Detail Trial Trojan');
-                
-                const akun = json.akun;
-                document.getElementById('res-user').innerText = akun.username || akun.remarks || "trial-auto";
-                document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
-                document.getElementById('res-exp').innerText = "15 Menit";
-                simpanKeRiwayat("Trojan Trial", "trial-auto", "id.masdvpnstore.web.id", "15 Menit", document.getElementById('fmt-tls').innerText, "-", document.getElementById('fmt-grpc').innerText);
-                
-                
-                document.getElementById('fmt-tls').innerText = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
-                
-                // (Catatan: fmt-ntls tidak dipanggil karena di HTML Trojan kotaknya sudah kita hapus)
-                
-                document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
-            } else {
-                // Munculkan alasan asli dari VPS atau tolakan limit dari Redis ke layar!
-                alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
-                goBack();
-            }
-        } catch (e) { 
-            alert("Terjadi kesalahan koneksi.");
-            goBack();
-        }
-    }
-
-    function copyText(id) {
-        navigator.clipboard.writeText(document.getElementById(id).innerText);
-        const t = document.getElementById("toast"); t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2000);
-    }
-        function simpanKeRiwayat(tipe, user, host, exp, linkTls, linkNtls, linkGrpc) {
-        let riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
-        riwayat.unshift({ tanggal: new Date().toLocaleString('id-ID'), layanan: tipe, username: user, host: host, expired: exp, tls: linkTls, ntls: linkNtls, grpc: linkGrpc });
-        localStorage.setItem('masd_riwayat', JSON.stringify(riwayat));
+    // --- 8. COPY & DOWNLOAD ---
+    function copyText(elementId) {
+        let textToCopy = document.getElementById(elementId).innerText; 
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const toast = document.getElementById("toast"); toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2000);
+        });
     }
 
     function downloadTXT() {
@@ -392,12 +446,64 @@ function goBack() {
         const tls = document.getElementById('fmt-tls').innerText;
         const grpc = document.getElementById('fmt-grpc').innerText;
 
-        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: Trojan\nUsername: ${u}\nHost/IP: ${h}\nExpired: ${e}\n\n=== LINK AKUN ===\n[TLS]\n${tls}\n\n[gRPC]\n${grpc}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
+        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: Trojan\nUsername: ${u}\nPassword: ${u}\nHost/IP: ${h}\nExpired: ${e}\n\n=== LINK AKUN ===\n[TLS]\n${tls}\n\n[gRPC]\n${grpc}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
         const blob = new Blob([isiTeks], { type: 'text/plain' });
         const anchor = document.createElement('a');
         anchor.download = `Trojan-${u}.txt`;
         anchor.href = window.URL.createObjectURL(blob);
         anchor.click();
+    }
+
+    // --- 9. FUNGSI TRIAL ---
+    async function prosesTrial() {
+        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba besok.");
+            return;
+        }
+
+        showScreen('screen-loading', 'Membuat Akun Trial');
+
+        try {
+            const response = await fetch('/api/buat_trial_trojan', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serverId: order.serverId })
+            });
+            const json = await response.json();
+
+            if (json.status === 'sukses') {
+                localStorage.setItem('masd_trial_date', hariIni);
+                
+                const akun = json.akun;
+                const u = akun.username || akun.remarks || "trial-auto";
+                const h = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                const exp = "15 Menit";
+                const tlsLink = akun.trojan || akun.trojan_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
+                const grpcLink = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
+
+                document.getElementById('res-user').innerText = u;
+                document.getElementById('res-host').innerText = h;
+                document.getElementById('res-exp').innerText = exp;
+                document.getElementById('fmt-tls').innerText = tlsLink;
+                document.getElementById('fmt-grpc').innerText = grpcLink;
+                showScreen('screen-success', 'Detail Trial Trojan');
+
+                // INSERT DATABASE DENGAN KOLOM GRPC
+                const orderIdTrial = `TRIAL-TROJAN-${Date.now()}`;
+                await db.from('transaksi_pembelian').insert([{
+                    id_user: currentUserId, no_invoice: orderIdTrial, layanan: 'Trojan Trial', server: order.serverName, harga: 0, status: 'success', 
+                    username_vpn: u, password_vpn: u, host_vpn: h, expired_vpn: exp, link_tls: tlsLink, link_ntls: "-", link_grpc: grpcLink
+                }]);
+
+            } else {
+                alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
+                goBack();
+            }
+        } catch (e) { 
+            alert("Terjadi kesalahan koneksi.");
+            goBack();
+        }
     }
 </script>
 </body>
