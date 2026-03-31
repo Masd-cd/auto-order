@@ -118,7 +118,11 @@
         const item = dataRiwayatGlobal[index];
         if (!item) return alert("Data tidak ditemukan.");
 
-        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nServer: ${item.server}\nUsername: ${item.username_vpn || '-'}\nPassword: ${item.password_vpn || '-'}\nHost/IP: ${item.host_vpn || '-'}\nExpired: ${item.expired_vpn || '-'}\n\n=== LINK AKUN ===\n[TLS]\n${item.link_tls || '-'}\n\n[NON-TLS]\n${item.link_ntls || '-'}\n\nTerima kasih telah berbelanja di MasD VPNStore!`;
+        // Bikin dinamis: Kalau ada isi gRPC, munculin. Kalau nggak, sembunyiin.
+        let teksGrpc = item.link_grpc && item.link_grpc !== "-" ? `\n[gRPC]\n${item.link_grpc}\n` : '';
+        let teksNtls = item.link_ntls && item.link_ntls !== "-" ? `[NON-TLS]\n${item.link_ntls}\n` : '';
+
+        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nServer: ${item.server}\nUsername: ${item.username_vpn || '-'}\nPassword: ${item.password_vpn || '-'}\nHost/IP: ${item.host_vpn || '-'}\nExpired: ${item.expired_vpn || '-'}\n\n=== LINK AKUN ===\n[TLS]\n${item.link_tls || '-'}\n\n${teksNtls}${teksGrpc}\nTerima kasih telah berbelanja di MasD VPNStore!`;
         
         const blob = new Blob([isiTeks], { type: 'text/plain' });
         const anchor = document.createElement('a');
