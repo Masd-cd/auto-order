@@ -585,7 +585,7 @@
             return;
         }
 
-        showScreen('screen-loading', 'Membuat Akun Trial');
+        showScreen('screen-loading', 'Membuat Akun Trial...');
 
         try {
             const response = await fetch('/api/buat_trial_ssh', {
@@ -599,24 +599,51 @@
                 localStorage.setItem('masd_trial_date', hariIni);
                 showScreen('screen-success', 'Detail Trial SSH');
                 
+                // 1. Tangkap Data Akun Trial
                 const domain = json.akun.hostname || json.akun.domain || json.akun.host || "id.masdvpnstore.web.id";
                 const u = json.akun.username || json.akun.user || "trial-auto";
                 const p = json.akun.password || json.akun.pass || "1";
                 const exp = "15 Menit";
                 
+                const tlsLink = `${domain}:443@${u}:${p}`;
+                const ntlsLink = `${domain}:80@${u}:${p}`;
+                
+                // 2. Tampilkan di Layar Sukses
                 document.getElementById('res-user').innerText = u;
                 document.getElementById('res-pass').innerText = p;
                 document.getElementById('res-host').innerText = domain;
                 document.getElementById('res-exp').innerText = exp;
+                document.getElementById('fmt-ws').innerText = ntlsLink;
+                document.getElementById('fmt-tls').innerText = tlsLink;
 
-                document.getElementById('fmt-ws').innerText = `${domain}:80@${u}:${p}`;
-                document.getElementById('fmt-tls').innerText = `${domain}:443@${u}:${p}`;
+                // 3. SIMPAN KE SUPABASE SEBAGAI RIWAYAT (LANGSUNG SUCCESS)
+                try {
+                    const orderIdTrial = `TRIAL-SSH-${Date.now()}`;
+                    await db.from('transaksi_pembelian').insert([{
+                        id_user: currentUserId,
+                        no_invoice: orderIdTrial,
+                        layanan: 'SSH Trial',
+                        server: order.serverName,
+                        harga: 0,
+                        status: 'success', // Trial langsung aktif, jadi ga perlu pending
+                        username_vpn: u,
+                        password_vpn: p,
+                        host_vpn: domain,
+                        expired_vpn: exp,
+                        link_tls: tlsLink,
+                        link_ntls: ntlsLink
+                    }]);
+                    console.log("Riwayat Trial tersimpan otomatis di Supabase!");
+                } catch (dbErr) {
+                    console.error("Gagal nyimpen trial ke DB:", dbErr);
+                }
+
             } else {
                 alert("Gagal: " + (json.alasan || json.error || "Gagal membuat trial."));
                 goBack();
             }
         } catch (e) { 
-            alert("Terjadi kesalahan koneksi.");
+            alert("Terjadi kesalahan koneksi jaringan.");
             goBack();
         }
     }
