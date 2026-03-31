@@ -171,13 +171,12 @@
             window.location.href = 'login.html';
         }
     }
-
+    
     async function tarikDataRiwayat() {
         const container = document.getElementById('list-riwayat');
         container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-8 animate-pulse">Mengambil data dari server...</div>`;
 
         try {
-            // TARIK DATA TAPI KECUALIKAN YANG STATUSNYA 'deleted'
             const { data, error } = await db
                 .from('transaksi_pembelian')
                 .select('*')
@@ -199,10 +198,32 @@
             for (let i = 0; i < data.length; i++) {
                 let item = data[i];
 
+                // --- 1. PENYAPU UNTUK INVOICE PENDING (Batas Bayar 10 Menit) ---
                 if (item.status === 'pending') {
                     const batasBayar = new Date(item.batas_bayar);
                     if (waktuSekarang > batasBayar) {
                         item.status = 'expired';
+                        db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id);
+                    }
+                }
+                
+                // --- 2. PENYAPU BARU: UNTUK AKUN VPN YANG HABIS MASA AKTIFNYA ---
+                if (item.status === 'success') {
+                    const waktuBeli = new Date(item.waktu_order);
+                    let waktuExpiredVpn = new Date(waktuBeli);
+
+                    // Cek apakah ini trial (Menit) atau premium (Hari)
+                    if (item.expired_vpn && item.expired_vpn.toLowerCase().includes('menit')) {
+                        let menit = parseInt(item.expired_vpn) || 15;
+                        waktuExpiredVpn.setMinutes(waktuExpiredVpn.getMinutes() + menit);
+                    } else if (item.expired_vpn && item.expired_vpn.toLowerCase().includes('hari')) {
+                        let hari = parseInt(item.expired_vpn) || 30;
+                        waktuExpiredVpn.setDate(waktuExpiredVpn.getDate() + hari);
+                    }
+
+                    // Jika waktu sekarang melewati batas masa aktif VPN
+                    if (waktuSekarang > waktuExpiredVpn) {
+                        item.status = 'expired'; // Kita ubah statusnya jadi expired
                         db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id);
                     }
                 }
@@ -242,11 +263,17 @@
                         </div>
                     `;
                 } else {
-                    warnaStatus = 'text-rose-400'; bgStatus = 'bg-rose-400/10'; borderKiri = 'bg-rose-500'; labelStatus = 'BATAL / KADALUARSA';
+                    warnaStatus = 'text-rose-400'; bgStatus = 'bg-rose-400/10'; borderKiri = 'bg-rose-500'; labelStatus = 'NON-AKTIF / BATAL';
+                    
+                    // Bikin pesan cerdas: Bedakan antara gagal bayar vs VPN mati
+                    let pesanMerah = "Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.";
+                    if (item.username_vpn) {
+                        pesanMerah = `Masa aktif untuk akun <span class="font-mono text-slate-200 font-bold">${item.username_vpn}</span> telah habis.`;
+                    }
+
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
-                            <p class="text-[10px] text-rose-500/80 italic mb-3">Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.</p>
-                            
+                            <p class="text-[10px] text-rose-500/80 italic mb-3">${pesanMerah}</p>
                             <button onclick="hapusRiwayat('${item.id}', event)" class="w-full bg-rose-500/10 border border-rose-500/30 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-500/20 transition flex items-center justify-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 Hapus Riwayat Ini
@@ -288,7 +315,7 @@
             container.innerHTML = `<div class="text-center text-rose-500 text-sm mt-12 font-medium">Gagal memuat riwayat dari server.</div>`;
         }
     }
-
+    
     initRiwayat();
 </script>
 </body>
