@@ -52,7 +52,7 @@
             </p>
         </div>
     </div>
-
+    
 <script>
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
@@ -76,40 +76,39 @@
 
     window.lanjutBayar = async function(invoice, harga, event) {
         event.stopPropagation();
-        
         const btn = event.currentTarget;
         const teksAsli = btn.innerHTML;
         btn.innerHTML = `<svg class="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat QRIS...`;
         btn.disabled = true;
 
-        let totalHarga = harga || 5000; 
-
         try {
             const response = await fetch('/api/buat_qris', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_id: invoice, amount: totalHarga })
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ order_id: invoice, amount: harga || 5000 })
             });
-
             const resQris = await response.json();
-
             if (resQris.status === 'sukses') {
-                sessionStorage.setItem('qris_resume', JSON.stringify({
-                    invoice: invoice,
-                    qris_string: resQris.qris_string,
-                    total_bayar: resQris.total_bayar
-                }));
-                window.location.href = 'ssh.html?resume=true';
+                sessionStorage.setItem('qris_resume', JSON.stringify({ invoice: invoice, qris_string: resQris.qris_string, total_bayar: resQris.total_bayar }));
+                window.location.href = 'ssh.html?resume=true'; 
+                // Catatan: Nanti kita bisa bikin routing dinamis kalau lanjut bayarnya dari vmess/trojan
             } else {
-                alert("Gagal memuat ulang QRIS: " + (resQris.alasan || "Silakan buat pesanan baru."));
-                btn.innerHTML = teksAsli;
-                btn.disabled = false;
+                alert("Gagal memuat ulang QRIS.");
+                btn.innerHTML = teksAsli; btn.disabled = false;
             }
         } catch (error) {
-            console.error(error);
             alert("Terjadi kesalahan jaringan.");
-            btn.innerHTML = teksAsli;
-            btn.disabled = false;
+            btn.innerHTML = teksAsli; btn.disabled = false;
+        }
+    };
+
+    window.hapusRiwayat = async function(id, event) {
+        event.stopPropagation(); 
+        if(confirm("Yakin ingin menghapus riwayat kadaluarsa ini dari daftar?")) {
+            const btn = event.currentTarget;
+            btn.innerHTML = "Menghapus..."; btn.disabled = true;
+            try {
+                await db.from('transaksi_pembelian').update({ status: 'deleted' }).eq('id', id);
+                tarikDataRiwayat();
+            } catch (err) { alert("Gagal menghapus riwayat."); btn.innerHTML = "Hapus Riwayat Ini"; btn.disabled = false; }
         }
     };
 
@@ -118,82 +117,51 @@
         const item = dataRiwayatGlobal[index];
         if (!item) return alert("Data tidak ditemukan.");
 
-        // Bikin dinamis: Kalau ada isi gRPC, munculin. Kalau nggak, sembunyiin.
         let teksGrpc = item.link_grpc && item.link_grpc !== "-" ? `\n[gRPC]\n${item.link_grpc}\n` : '';
-        let teksNtls = item.link_ntls && item.link_ntls !== "-" ? `[NON-TLS]\n${item.link_ntls}\n` : '';
+        let teksNtls = item.link_ntls && item.link_ntls !== "-" ? `\n[NON-TLS]\n${item.link_ntls}\n` : '';
 
-        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nServer: ${item.server}\nUsername: ${item.username_vpn || '-'}\nPassword: ${item.password_vpn || '-'}\nHost/IP: ${item.host_vpn || '-'}\nExpired: ${item.expired_vpn || '-'}\n\n=== LINK AKUN ===\n[TLS]\n${item.link_tls || '-'}\n\n${teksNtls}${teksGrpc}\nTerima kasih telah berbelanja di MasD VPNStore!`;
-        
+        const isiTeks = `=== AKUN MASD VPNSTORE ===\nLayanan: ${item.layanan}\nServer: ${item.server}\nUsername: ${item.username_vpn || '-'}\nPassword: ${item.password_vpn || '-'}\nHost/IP: ${item.host_vpn || '-'}\nExpired: ${item.expired_vpn || '-'}\n\n=== LINK AKUN ===\n[TLS]\n${item.link_tls || '-'}\n${teksNtls}${teksGrpc}\nTerima kasih telah berbelanja di MasD VPNStore!`;
         const blob = new Blob([isiTeks], { type: 'text/plain' });
         const anchor = document.createElement('a');
         anchor.download = `${item.layanan.replace(/\s/g, '')}-${item.username_vpn || 'akun'}.txt`;
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
+        anchor.href = window.URL.createObjectURL(blob); anchor.click();
     };
 
-    // --- FUNGSI BARU: HAPUS RIWAYAT KADALUARSA ---
-    window.hapusRiwayat = async function(id, event) {
-        event.stopPropagation(); // Biar card ga ikut nutup pas diklik
-        
-        if(confirm("Yakin ingin menghapus riwayat kadaluarsa ini dari daftar?")) {
-            const btn = event.currentTarget;
-            const teksAsli = btn.innerHTML;
-            btn.innerHTML = "Menghapus...";
-            btn.disabled = true;
-
-            try {
-                // Trik: Ubah status jadi 'deleted' (disembunyikan dari layar)
-                await db.from('transaksi_pembelian').update({ status: 'deleted' }).eq('id', id);
-                
-                // Refresh list riwayat
-                tarikDataRiwayat();
-            } catch (err) {
-                console.error("Gagal hapus:", err);
-                alert("Gagal menghapus riwayat.");
-                btn.innerHTML = teksAsli;
-                btn.disabled = false;
-            }
-        }
+    window.copyLink = function(btn, text, event) {
+        event.stopPropagation();
+        navigator.clipboard.writeText(text).then(() => {
+            let originalText = btn.innerText;
+            btn.innerText = "COPIED!";
+            btn.classList.add("bg-emerald-500/20", "text-emerald-400");
+            btn.classList.remove("text-indigo-400", "bg-indigo-500/20");
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove("bg-emerald-500/20", "text-emerald-400");
+                btn.classList.add("text-indigo-400", "bg-indigo-500/20");
+            }, 2000);
+        });
     };
 
     // --- FUNGSI UTAMA ---
     async function initRiwayat() {
         try {
             const { data: authData, error: authError } = await db.auth.getSession();
-            if (authError || !authData.session) {
-                window.location.href = 'login.html';
-                return;
-            } 
-            
+            if (authError || !authData.session) return window.location.href = 'login.html';
             currentUserId = authData.session.user.id;
             document.getElementById('loading-overlay').style.display = 'none';
             document.getElementById('main-content').classList.remove('hidden');
-
             await tarikDataRiwayat();
-        } catch (err) {
-            console.error("Gagal inisialisasi riwayat:", err);
-            window.location.href = 'login.html';
-        }
+        } catch (err) { window.location.href = 'login.html'; }
     }
-    
+
     async function tarikDataRiwayat() {
         const container = document.getElementById('list-riwayat');
         container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-8 animate-pulse">Mengambil data dari server...</div>`;
 
         try {
-            const { data, error } = await db
-                .from('transaksi_pembelian')
-                .select('*')
-                .eq('id_user', currentUserId)
-                .neq('status', 'deleted') 
-                .order('waktu_order', { ascending: false });
-
+            const { data, error } = await db.from('transaksi_pembelian').select('*').eq('id_user', currentUserId).neq('status', 'deleted').order('waktu_order', { ascending: false });
             if (error) throw error;
-
-            if (!data || data.length === 0) {
-                container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-12 font-medium bg-[#1e293b] py-8 rounded-3xl border border-[#334155]">Belum ada riwayat transaksi.</div>`;
-                return;
-            }
+            if (!data || data.length === 0) return container.innerHTML = `<div class="text-center text-slate-500 text-sm mt-12 font-medium bg-[#1e293b] py-8 rounded-3xl border border-[#334155]">Belum ada riwayat transaksi.</div>`;
 
             const waktuSekarang = new Date();
             dataRiwayatGlobal = [];
@@ -202,38 +170,22 @@
             for (let i = 0; i < data.length; i++) {
                 let item = data[i];
 
-                // --- 1. PENYAPU UNTUK INVOICE PENDING (Batas Bayar 10 Menit) ---
                 if (item.status === 'pending') {
                     const batasBayar = new Date(item.batas_bayar);
-                    if (waktuSekarang > batasBayar) {
-                        item.status = 'expired';
-                        db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id);
-                    }
+                    if (waktuSekarang > batasBayar) { item.status = 'expired'; db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id); }
                 }
                 
-                // --- 2. PENYAPU BARU: UNTUK AKUN VPN YANG HABIS MASA AKTIFNYA ---
                 if (item.status === 'success') {
-                    const waktuBeli = new Date(item.waktu_order);
-                    let waktuExpiredVpn = new Date(waktuBeli);
-
-                    // Cek apakah ini trial (Menit) atau premium (Hari)
+                    const waktuBeli = new Date(item.waktu_order); let waktuExpiredVpn = new Date(waktuBeli);
                     if (item.expired_vpn && item.expired_vpn.toLowerCase().includes('menit')) {
-                        let menit = parseInt(item.expired_vpn) || 15;
-                        waktuExpiredVpn.setMinutes(waktuExpiredVpn.getMinutes() + menit);
+                        waktuExpiredVpn.setMinutes(waktuExpiredVpn.getMinutes() + (parseInt(item.expired_vpn) || 15));
                     } else if (item.expired_vpn && item.expired_vpn.toLowerCase().includes('hari')) {
-                        let hari = parseInt(item.expired_vpn) || 30;
-                        waktuExpiredVpn.setDate(waktuExpiredVpn.getDate() + hari);
+                        waktuExpiredVpn.setDate(waktuExpiredVpn.getDate() + (parseInt(item.expired_vpn) || 30));
                     }
-
-                    // Jika waktu sekarang melewati batas masa aktif VPN
-                    if (waktuSekarang > waktuExpiredVpn) {
-                        item.status = 'expired'; // Kita ubah statusnya jadi expired
-                        db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id);
-                    }
+                    if (waktuSekarang > waktuExpiredVpn) { item.status = 'expired'; db.from('transaksi_pembelian').update({ status: 'expired' }).eq('id', item.id); }
                 }
                 
                 dataRiwayatGlobal.push(item);
-
                 const tgl = new Date(item.waktu_order);
                 const formatTgl = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
                 const formatJam = tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -242,6 +194,12 @@
 
                 if (item.status === 'success') {
                     warnaStatus = 'text-emerald-400'; bgStatus = 'bg-emerald-400/10'; borderKiri = 'bg-emerald-500'; labelStatus = 'LUNAS / AKTIF';
+                    
+                    // RAKIT KOTAK LINK DINAMIS
+                    let blokTls = item.link_tls && item.link_tls !== "-" ? `<div class="mt-2 bg-[#0f172a] p-2.5 rounded-xl border border-[#334155]"><div class="flex justify-between items-center mb-1.5"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link TLS (443)</span><button onclick="copyLink(this, '${item.link_tls}', event)" class="text-[9px] font-bold bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-md transition">COPY</button></div><div class="text-[9px] font-mono text-rose-400 break-all line-clamp-2 leading-relaxed">${item.link_tls}</div></div>` : '';
+                    let blokNtls = item.link_ntls && item.link_ntls !== "-" ? `<div class="mt-2 bg-[#0f172a] p-2.5 rounded-xl border border-[#334155]"><div class="flex justify-between items-center mb-1.5"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link Non-TLS (80)</span><button onclick="copyLink(this, '${item.link_ntls}', event)" class="text-[9px] font-bold bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-md transition">COPY</button></div><div class="text-[9px] font-mono text-emerald-400 break-all line-clamp-2 leading-relaxed">${item.link_ntls}</div></div>` : '';
+                    let blokGrpc = item.link_grpc && item.link_grpc !== "-" ? `<div class="mt-2 bg-[#0f172a] p-2.5 rounded-xl border border-[#334155]"><div class="flex justify-between items-center mb-1.5"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link gRPC</span><button onclick="copyLink(this, '${item.link_grpc}', event)" class="text-[9px] font-bold bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded-md transition">COPY</button></div><div class="text-[9px] font-mono text-pink-400 break-all line-clamp-2 leading-relaxed">${item.link_grpc}</div></div>` : '';
+
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 space-y-2">
                             <div class="bg-[#0f172a] p-3 rounded-xl border border-[#334155]">
@@ -250,7 +208,13 @@
                                 <div class="flex justify-between text-[11px] mb-1"><span class="text-slate-500">Host / IP</span> <span class="font-mono text-slate-200 font-bold">${item.host_vpn || '-'}</span></div>
                                 <div class="flex justify-between text-[11px] mt-2 pt-2 border-t border-[#334155]/50"><span class="text-slate-500">Expired</span> <span class="text-yellow-400 font-bold">${item.expired_vpn || '-'}</span></div>
                             </div>
-                            <button onclick="downloadTXT(${i}, event)" class="w-full mt-2 bg-indigo-600/20 border border-indigo-500/30 py-2.5 rounded-xl text-xs font-bold text-indigo-400 hover:bg-indigo-600/40 transition flex items-center justify-center">
+                            
+                            ${blokTls}
+                            ${blokNtls}
+                            ${blokGrpc}
+
+                            <button onclick="downloadTXT(${i}, event)" class="w-full mt-3 bg-[#0f172a] border border-[#334155] py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-[#334155] transition flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Download Detail (TXT)
                             </button>
                         </div>
@@ -268,18 +232,11 @@
                     `;
                 } else {
                     warnaStatus = 'text-rose-400'; bgStatus = 'bg-rose-400/10'; borderKiri = 'bg-rose-500'; labelStatus = 'NON-AKTIF / BATAL';
-                    
-                    // Bikin pesan cerdas: Bedakan antara gagal bayar vs VPN mati
-                    let pesanMerah = "Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.";
-                    if (item.username_vpn) {
-                        pesanMerah = `Masa aktif untuk akun <span class="font-mono text-slate-200 font-bold">${item.username_vpn}</span> telah habis.`;
-                    }
-
+                    let pesanMerah = item.username_vpn ? `Masa aktif untuk akun <span class="font-mono text-slate-200 font-bold">${item.username_vpn}</span> telah habis.` : "Waktu pembayaran telah habis atau pesanan dibatalkan. Silakan buat pesanan baru.";
                     kontenTersembunyi = `
                         <div class="mt-4 pt-4 border-t border-[#334155]/50 text-center">
                             <p class="text-[10px] text-rose-500/80 italic mb-3">${pesanMerah}</p>
                             <button onclick="hapusRiwayat('${item.id}', event)" class="w-full bg-rose-500/10 border border-rose-500/30 py-2.5 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-500/20 transition flex items-center justify-center">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 Hapus Riwayat Ini
                             </button>
                         </div>
@@ -291,36 +248,21 @@
                     <div class="absolute top-0 left-0 w-1 h-full ${borderKiri}"></div>
                     <div class="flex justify-between items-start mb-3 pl-2 border-b border-[#334155]/50 pb-3">
                         <div><span class="text-[10px] font-bold text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded-md uppercase tracking-wider">${item.layanan}</span></div>
-                        <div class="text-right">
-                            <div class="text-[10px] text-slate-400 font-medium">${formatTgl}</div>
-                            <div class="text-[9px] text-slate-500">${formatJam} WIB</div>
-                        </div>
+                        <div class="text-right"><div class="text-[10px] text-slate-400 font-medium">${formatTgl}</div><div class="text-[9px] text-slate-500">${formatJam} WIB</div></div>
                     </div>
                     <div class="pl-2 space-y-1">
-                        <div class="text-[11px] text-slate-400 font-mono flex justify-between items-center">
-                            <span>INV: ${item.no_invoice.substring(0, 12)}...</span>
-                            <svg class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
+                        <div class="text-[11px] text-slate-400 font-mono flex justify-between items-center"><span>INV: ${item.no_invoice.substring(0, 12)}...</span><svg class="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
                         <div class="text-sm font-bold text-slate-200">Server: ${item.server}</div>
-                        <div class="flex justify-between items-end mt-4 pt-2">
-                            <div class="text-[15px] text-slate-200 font-bold">Rp ${item.harga.toLocaleString('id-ID')}</div>
-                            <span class="text-[9px] font-bold ${warnaStatus} ${bgStatus} px-2.5 py-1 rounded-full tracking-widest">${labelStatus}</span>
-                        </div>
+                        <div class="flex justify-between items-end mt-4 pt-2"><div class="text-[15px] text-slate-200 font-bold">Rp ${item.harga.toLocaleString('id-ID')}</div><span class="text-[9px] font-bold ${warnaStatus} ${bgStatus} px-2.5 py-1 rounded-full tracking-widest">${labelStatus}</span></div>
                     </div>
-                    <div id="detail-${i}" class="hidden">
-                        ${kontenTersembunyi}
-                    </div>
-                </div>
-                `;
+                    <div id="detail-${i}" class="hidden">${kontenTersembunyi}</div>
+                </div>`;
             }
             container.innerHTML = html;
-        } catch (error) {
-            console.error("Error tarik data:", error);
-            container.innerHTML = `<div class="text-center text-rose-500 text-sm mt-12 font-medium">Gagal memuat riwayat dari server.</div>`;
-        }
+        } catch (error) { container.innerHTML = `<div class="text-center text-rose-500 text-sm mt-12 font-medium">Gagal memuat riwayat dari server.</div>`; }
     }
-    
     initRiwayat();
-</script>
+
+</script>  
 </body>
 </html>
