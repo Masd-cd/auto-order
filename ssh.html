@@ -276,29 +276,21 @@
     let historyStack = ['screen-server'];
     let qrisTimerInterval = null;
 
-    // --- KONFIGURASI NOTIF TELEGRAM ---
-const TELE_TOKEN = '8705907199:AAHUPibpOYWcZoEV4nqpO8tMcdA3Q5JzS4E';
-const TELE_CHAT_ID = '8442417007';
+    // --- 2. SISTEM NOTIFIKASI AMAN (VIA VERCEL) ---
+    async function kirimNotifTelegram(pesan) {
+        try {
+            await fetch('/api/kirim_notif', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pesan: pesan })
+            });
+        } catch (e) {
+            console.log("Gagal kirim notif ke Vercel");
+        }
+    }
 
-async function kirimNotifTelegram(pesan) {
-    try {
-        await fetch(`https://api.telegram.org/bot${TELE_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: TELE_CHAT_ID,
-                text: pesan,
-                parse_mode: 'HTML'
-            })
-        });
-    } catch (err) { console.error("Gagal kirim notif:", err); }
-}
-
-    // --- 2. SISTEM SATPAM ---
-        let currentUserId = null; 
-    let currentUserEmail = "Pembeli"; // Tambahkan variabel baru ini
-    
-    // ... variabel order & history ...
+    // --- 3. SISTEM SATPAM ---
+    let currentUserEmail = "Pembeli";
 
     async function cekAkses() {
         try {
@@ -321,7 +313,7 @@ async function kirimNotifTelegram(pesan) {
     }
     cekAkses(); 
 
-        // --- PENANGKAP LANJUT BAYAR DARI RIWAYAT ---
+    // --- PENANGKAP LANJUT BAYAR DARI RIWAYAT ---
     function cekResumeQris() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('resume') === 'true') {
@@ -558,14 +550,15 @@ async function kirimNotifTelegram(pesan) {
                     // 3. SIMPAN KE SUPABASE (Update Status + Detail Akun)
                     try {
                         // Notif Premium
-const pesanPremium = `<b>🚀 PESANAN PREMIUM LUNAS!</b>\n\n` +
-                     `<b>Layanan:</b> ${order.protocol} Premium\n` +
-                     `<b>Server:</b> ${order.serverName}\n` +
-                     `<b>Harga:</b> Rp ${parseInt(order.price).toLocaleString('id-ID')}\n` +
-                     `<b>Pembeli:</b> ${currentUserEmail}\n` +
-                     `<b>Username VPN:</b> ${resUser}\n\n` +
-                     `<i>Cek detail lengkap di Supabase.</i>`;
-kirimNotifTelegram(pesanPremium);
+                        const pesanPremium = `<b>🚀 PESANAN PREMIUM LUNAS!</b>\n\n` +
+                                             `<b>Layanan:</b> ${order.protocol} Premium\n` +
+                                             `<b>Server:</b> ${order.serverName}\n` +
+                                             `<b>Harga:</b> Rp ${parseInt(order.price).toLocaleString('id-ID')}\n` +
+                                             `<b>Pembeli:</b> ${currentUserEmail}\n` +
+                                             `<b>Username VPN:</b> ${resUser}\n\n` +
+                                             `<i>Cek detail lengkap di Supabase.</i>`;
+                        kirimNotifTelegram(pesanPremium);
+                        
                         await db.from('transaksi_pembelian')
                             .update({ 
                                 status: 'success',
@@ -669,13 +662,15 @@ kirimNotifTelegram(pesanPremium);
                         link_tls: tlsLink,
                         link_ntls: ntlsLink
                     }]);
+                    
                     // Notif Trial
-const pesanTrial = `<b>⏱️ TRIAL BARU DIBUAT!</b>\n\n` +
-                   `<b>Layanan:</b> ${order.protocol} Trial\n` +
-                   `<b>Server:</b> ${order.serverName}\n` +
-                   `<b>Username:</b> ${u}\n\n` +
-                   `<i>User ini baru saja mencoba layanan gratis.</i>`;
-kirimNotifTelegram(pesanTrial);
+                    const pesanTrial = `<b>⏱️ TRIAL BARU DIBUAT!</b>\n\n` +
+                                       `<b>Layanan:</b> ${order.protocol} Trial\n` +
+                                       `<b>Server:</b> ${order.serverName}\n` +
+                                       `<b>Pencoba:</b> ${currentUserEmail}\n` +
+                                       `<b>Username VPN:</b> ${u}\n\n` +
+                                       `<i>User ini baru saja mencoba layanan gratis.</i>`;
+                    kirimNotifTelegram(pesanTrial);
                     
                     console.log("Riwayat Trial tersimpan otomatis di Supabase!");
                 } catch (dbErr) {
@@ -694,4 +689,3 @@ kirimNotifTelegram(pesanTrial);
 </script>
 </body>
 </html>
-                    
