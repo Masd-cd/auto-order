@@ -11,11 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-                #loading-overlay {
+        #loading-overlay {
             position: fixed; inset: 0; background-color: #0f172a; z-index: 50;
             display: flex; align-items: center; justify-content: center; flex-direction: column;
-                }
-        
+        }
         body { background-color: #0f172a; color: #f8fafc; }
         .card { background-color: #1e293b; border: 1px solid #334155; }
         .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
@@ -106,16 +105,18 @@
             <button onclick="prosesCheckout()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-2xl transition shadow-[0_0_15px_rgba(168,85,247,0.3)]">Bayar QRIS</button>
         </div>
 
-                <div id="screen-qris" class="screen">
-            <div class="text-center mb-4">
+        <div id="screen-qris" class="screen text-center">
+            <div class="bg-[#0f172a]/50 p-3 rounded-2xl inline-block border border-[#334155] mb-4">
                 <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mb-1">Total Pembayaran</p>
                 <h3 id="teks-harga-qris" class="text-2xl font-bold text-emerald-400 mb-1">Rp -</h3>
-                <p class="text-[10px] text-slate-500">Sistem otomatis mengecek pembayaran</p>
+                <p class="text-[10px] text-rose-400 font-bold tracking-wider mt-2 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20 hidden">
+                    Expired: <span id="waktu-qris">10:00</span> menit
+                </p>
             </div>
             
             <div class="flex justify-center items-center mb-6 mt-2">
-                <div class="bg-white p-4 rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                    <div id="tempat-qris"></div>
+                <div class="bg-white p-4 rounded-3xl shadow-[0_0_20px_rgba(168,85,247,0.4)] w-[280px] h-[280px]">
+                    <div id="tempat-qris" class="w-full h-full"></div>
                 </div>
             </div>
 
@@ -126,7 +127,7 @@
                 </div>
             </div>
             
-            <button onclick="goBack()" class="w-full card hover:bg-[#334155] text-slate-300 font-bold py-3 rounded-2xl transition mt-4 text-xs border border-[#334155]">Batalkan Pesanan</button>
+            <button onclick="window.location.href='index.html'" class="w-full card hover:bg-[#334155] text-slate-300 font-bold py-3 rounded-2xl transition mt-6 text-xs border border-[#334155]">Batalkan Pesanan</button>
         </div>
 
         <div id="screen-loading" class="screen">
@@ -137,7 +138,7 @@
             <button onclick="downloadTXT()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center justify-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     Download Detail Akun (.txt)
-                </button>
+            </button>
                 
             <div class="space-y-3 mt-4 card rounded-3xl p-6 mb-5 shadow-lg relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
@@ -200,11 +201,6 @@
             </div>
 
             <div class="space-y-3 mt-4">
-                <button onclick="downloadTXT()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-[0_0_15px_rgba(52,211,153,0.3)] flex items-center justify-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Download Detail Akun (.txt)
-                </button>
-
                 <a href="index.html" class="flex items-center justify-center w-full bg-[#1e293b] border border-[#334155] hover:bg-[#334155] text-slate-200 font-bold py-3.5 rounded-2xl transition text-sm">
                     Kembali ke Menu Utama
                 </a>
@@ -224,49 +220,65 @@
     </div>
 
 <script>
-        // --- AWAL KODE SATPAM SUPABASE ---
+    // --- 1. INISIALISASI SUPABASE ---
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function cekAkses() {
-        const { data, error } = await db.auth.getSession();
-        if (error || !data.session) {
+    let currentUserId = null; 
+    let order = { protocol: 'VLESS', serverId: '', serverName: '', duration: '', price: '' };
+    let historyStack = ['screen-server'];
+    let qrisTimerInterval = null;
+
+    // --- 2. SISTEM SATPAM CEK LOGIN ---
+    async function cekAkses() {
+        try {
+            const { data, error } = await db.auth.getSession();
+            if (error || !data.session) {
+                window.location.href = 'login.html';
+            } else {
+                currentUserId = data.session.user.id;
+                const overlay = document.getElementById('loading-overlay');
+                if(overlay) overlay.style.display = 'none';
+                showScreen('screen-server', 'Pilih Server');
+                
+                // Cek apakah bawa titipan QRIS dari Riwayat
+                setTimeout(cekResumeQris, 500);
+            }
+        } catch (err) {
             window.location.href = 'login.html';
-        } else {
-            // Kalau berhasil login, hilangkan layar hitamnya
-            document.getElementById('loading-overlay').style.display = 'none';
         }
     }
     cekAkses();
- // Jalankan satpam secara otomatis
-    // --- AKHIR KODE SATPAM SUPABASE ---
 
-    let order = { protocol: 'VLESS', serverId: '', serverName: '', duration: '', price: '' };
-    let historyStack = ['screen-server'];
-
-        function showScreen(screenId, title) {
+    // --- 3. NAVIGASI LAYAR ---
+    function showScreen(screenId, title) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
+        const targetScreen = document.getElementById(screenId);
+        if(targetScreen) targetScreen.classList.add('active');
 
         const btnBack = document.getElementById('btn-back');
-        document.getElementById('header-title').innerText = title;
+        const headerTitle = document.getElementById('header-title');
+        if(headerTitle) headerTitle.innerText = title;
 
-        if (screenId === 'screen-loading' || screenId === 'screen-success') {
-            btnBack.classList.add('hidden');
-        } else {
-            btnBack.classList.remove('hidden');
+        if(btnBack) {
+            // TIDAK ADA PENGHAPUSAN TOMBOL BACK DI SCREEN-SERVER SEPERTI YANG DIMINTA
+            if (screenId === 'screen-loading' || screenId === 'screen-success') {
+                btnBack.classList.add('hidden');
+            } else {
+                btnBack.classList.remove('hidden');
+            }
         }
 
-        // --- PELATUK ANIMASI FOOTER ---
-        const footer = document.getElementById('footer-credit');
-        if (footer) {
-            footer.classList.remove('fade-in-up');
-            void footer.offsetWidth; // Ini trik ajaib untuk me-reset animasi
-            footer.classList.add('fade-in-up');
+        const f = document.getElementById('footer-credit');
+        if(f) {
+            f.style.animation = 'none';
+            void f.offsetWidth;
+            f.style.animation = 'fadeInUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
         }
     }
-function goBack() {
+
+    function goBack() {
         if(historyStack.length > 1) {
             historyStack.pop();
             const prevScreen = historyStack[historyStack.length - 1];
@@ -274,6 +286,8 @@ function goBack() {
             let title = "Pilih Server";
             if(prevScreen === 'screen-type') title = "Tipe Layanan";
             if(prevScreen === 'screen-duration') title = "Pilih Paket";
+            // KESALAHAN YANG LALU SUDAH DIPERBAIKI DI SINI:
+            if(prevScreen === 'screen-input') title = "Konfigurasi Akun";
             
             showScreen(prevScreen, title);
         } else {
@@ -281,72 +295,158 @@ function goBack() {
         }
     }
 
-    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Layanan'); }
-    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Durasi'); } }
+    // --- 4. PEMILIHAN PESANAN ---
+    function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
+    function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
+    
     function pilihDurasi(durasi, harga) { 
         order.duration = durasi; order.price = harga; 
         document.getElementById('ringkasan-pesanan').innerHTML = `Protocol: <span class="text-white">VLESS Premium</span><br>Server: <span class="text-white">${order.serverName}</span><br>Masa Aktif: <span class="text-white">${order.duration} Hari</span><br>Tagihan: <span class="text-purple-400 font-bold">Rp ${parseInt(harga).toLocaleString('id-ID')}</span>`;
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
-        async function prosesCheckout() {
+    // --- 5. FUNGSI DATABASE & TIMER QRIS ---
+    async function updateStatusTransaksi(orderId, statusBaru) {
+        try { await db.from('transaksi_pembelian').update({ status: statusBaru }).eq('no_invoice', orderId); } catch (e) { console.error(e); }
+    }
+
+    function mulaiTimerQris(orderId, durasiMenit = 10) {
+        if (qrisTimerInterval) clearInterval(qrisTimerInterval);
+        const timerDisplay = document.getElementById('waktu-qris'); 
+        if(timerDisplay) timerDisplay.parentElement.classList.remove('hidden');
+
+        let waktuTersisa = durasiMenit * 60;
+        qrisTimerInterval = setInterval(async () => {
+            waktuTersisa--;
+            let menit = Math.floor(waktuTersisa / 60);
+            let detik = waktuTersisa % 60;
+            if(timerDisplay) timerDisplay.innerText = `${menit.toString().padStart(2, '0')}:${detik.toString().padStart(2, '0')}`;
+
+            if (waktuTersisa <= 0) {
+                clearInterval(qrisTimerInterval);
+                await updateStatusTransaksi(orderId, 'expired');
+                alert("Waktu pembayaran habis. Silakan buat pesanan baru.");
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+    }
+
+    // --- 6. PENANGKAP LANJUT BAYAR DARI RIWAYAT ---
+    function cekResumeQris() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('resume') === 'true') {
+            const dataResume = JSON.parse(sessionStorage.getItem('qris_resume'));
+            if (dataResume) {
+                document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(dataResume.total_bayar).toLocaleString();
+                document.getElementById('tempat-qris').innerHTML = "";
+                new QRCode(document.getElementById("tempat-qris"), {
+                    text: dataResume.qris_string, width: 250, height: 250, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                showScreen('screen-qris', 'Scan QRIS');
+                mulaiTimerQris(dataResume.invoice, 10);
+                
+                let cekPembayaranResume = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/api/cek_akun?order_id=${dataResume.invoice}`);
+                        const json = await res.json();
+                        if (json.status === 'sukses') {
+                            clearInterval(cekPembayaranResume); clearInterval(qrisTimerInterval);
+                            
+                            const akun = json.akun;
+                            const resUser = akun.username || akun.remarks || "user-" + Math.floor(Math.random()*1000);
+                            const resHost = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                            const resExp = akun.expired || akun.exp || "Aktif";
+                            
+                            const tlsLink = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
+                            const ntlsLink = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
+                            const grpcLink = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
+
+                            document.getElementById('res-user').innerText = resUser;
+                            document.getElementById('res-host').innerText = resHost;
+                            document.getElementById('res-exp').innerText = resExp;
+                            document.getElementById('fmt-tls').innerText = tlsLink;
+                            document.getElementById('fmt-ntls').innerText = ntlsLink;
+                            document.getElementById('fmt-grpc').innerText = grpcLink;
+                            showScreen('screen-success', 'Informasi Akun VLESS');
+
+                            // UPDATE DATABASE DENGAN KETIGA KOLOM LINK
+                            await db.from('transaksi_pembelian')
+                                .update({ status: 'success', username_vpn: resUser, password_vpn: resUser, host_vpn: resHost, expired_vpn: resExp, link_tls: tlsLink, link_ntls: ntlsLink, link_grpc: grpcLink })
+                                .eq('no_invoice', dataResume.invoice);
+                        }
+                    } catch (e) {}
+                }, 3000);
+                sessionStorage.removeItem('qris_resume'); return true; 
+            }
+        } return false;
+    }
+
+    // --- 7. PROSES UTAMA (CHECKOUT PAYDISINI) ---
+    async function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
         if (!user) return alert("Username wajib diisi!");
+        if (!currentUserId) return alert("Sesi login tidak valid.");
         
         const orderId = `VLESS-${order.serverId}-${order.duration}-${user}-123-${Date.now()}`;
-        
         showScreen('screen-loading', 'Membuat QRIS...');
 
         try {
-            // Minta string QRIS dari backend Vercel kita
+            // Simpan Data Awal ke Supabase (Status: Pending)
+            const { error: dbError } = await db.from('transaksi_pembelian').insert([{
+                id_user: currentUserId, no_invoice: orderId, layanan: 'VLESS Premium', server: order.serverName, harga: parseInt(order.price), status: 'pending'
+            }]);
+            if (dbError) throw new Error("Gagal menyimpan transaksi ke database.");
+
+            // Panggil API Vercel -> PayDisini
             const req = await fetch('/api/buat_qris', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ order_id: orderId, amount: order.price })
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ order_id: orderId, amount: order.price })
             });
             const resQris = await req.json();
 
             if (resQris.status === 'sukses') {
-                // Tampilkan Harga + Kode Unik dari Pakasir
                 document.getElementById('teks-harga-qris').innerText = "Rp " + parseInt(resQris.total_bayar).toLocaleString();
-                
-                // Hapus QR lama jika ada, lalu Cetak QR Baru
                 document.getElementById('tempat-qris').innerHTML = "";
                 new QRCode(document.getElementById("tempat-qris"), {
-                    text: resQris.qris_string,
-                    width: 250,
-                    height: 250,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
+                    text: resQris.qris_string, width: 250, height: 250, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
                 });
 
-                // Munculkan layar QRIS ke pembeli
                 showScreen('screen-qris', 'Scan QRIS');
+                mulaiTimerQris(orderId, 10);
 
-                // Mulai deteksi pembayaran sukses
                 let cek = setInterval(async () => {
                     try {
                         const res = await fetch(`/api/cek_akun?order_id=${orderId}`);
                         const json = await res.json();
                         if (json.status === 'sukses') {
-                            clearInterval(cek); 
+                            clearInterval(cek); clearInterval(qrisTimerInterval);
                             showScreen('screen-success', 'Detail Akun VLESS');
                             
                             const akun = json.akun;
-                            document.getElementById('res-user').innerText = akun.username || akun.remarks || user;
-                            document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
-                            document.getElementById('res-exp').innerText = akun.expired || akun.exp || order.duration + " Hari";
+                            const resUser = akun.username || akun.remarks || user;
+                            const resHost = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                            const resExp = akun.expired || akun.exp || order.duration + " Hari";
                             
-                            document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
-                            document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
-                            document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
-                            simpanKeRiwayat("VLESS Premium", akun.username || user, akun.hostname || "id.masdvpnstore.web.id", order.duration + " Hari", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ntls').innerText, document.getElementById('fmt-grpc').innerText);
+                            const tlsLink = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek di Panel";
+                            const ntlsLink = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek di Panel";
+                            const grpcLink = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek di Panel";
+
+                            document.getElementById('res-user').innerText = resUser;
+                            document.getElementById('res-host').innerText = resHost;
+                            document.getElementById('res-exp').innerText = resExp;
+                            document.getElementById('fmt-tls').innerText = tlsLink;
+                            document.getElementById('fmt-ntls').innerText = ntlsLink;
+                            document.getElementById('fmt-grpc').innerText = grpcLink;
                             
+                            // UPDATE SUPABASE JADI SUCCESS & MASUKKAN 3 LINK
+                            await db.from('transaksi_pembelian')
+                                .update({ status: 'success', username_vpn: resUser, password_vpn: resUser, host_vpn: resHost, expired_vpn: resExp, link_tls: tlsLink, link_ntls: ntlsLink, link_grpc: grpcLink })
+                                .eq('no_invoice', orderId);
                         }
                     } catch (e) {}
                 }, 3000);
             } else {
+                await updateStatusTransaksi(orderId, 'error_qris');
                 alert("Gagal memuat QRIS: " + resQris.alasan);
                 goBack();
             }
@@ -356,64 +456,12 @@ function goBack() {
         }
     }
 
-    async function prosesTrial() {
-        // GEMBOK LEVEL 1: Cek ingatan Browser (Berdasarkan Tanggal Hari Ini)
-        const hariIni = new Date().toDateString();
-        if (localStorage.getItem('masd_trial_date') === hariIni) {
-            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
-            return; // Hentikan proses, jangan lanjut ke server
-        }
-
-        showScreen('screen-loading', 'Trial');
-        try {
-            const res = await fetch('/api/buat_trial_vless', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ serverId: order.serverId })});
-            const json = await res.json();
-            
-            if (json.status === 'sukses') {
-                // KUNCI BROWSER: Simpan tanggal hari ini ke ingatan browser
-                localStorage.setItem('masd_trial_date', hariIni);
-
-                showScreen('screen-success', 'Detail Trial VLESS');
-                
-                const akun = json.akun;
-                document.getElementById('res-user').innerText = akun.username || akun.remarks || "trial-auto";
-                document.getElementById('res-host').innerText = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
-                document.getElementById('res-exp').innerText = "15 Menit";
-                
-                document.getElementById('fmt-tls').innerText = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
-                document.getElementById('fmt-ntls').innerText = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
-                document.getElementById('fmt-grpc').innerText = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
-                simpanKeRiwayat("VLESS Trial", "trial-auto", "id.masdvpnstore.web.id", "15 Menit", document.getElementById('fmt-tls').innerText, document.getElementById('fmt-ntls').innerText, document.getElementById('fmt-grpc').innerText);
-            } else { 
-                alert("Gagal: " + (json.alasan || "Server Sibuk")); 
-                goBack(); 
-            }
-        } catch (e) { 
-            alert("Error Koneksi"); 
-            goBack(); 
-        }
-    }
+    // --- 8. COPY & DOWNLOAD ---
     function copyText(id) {
         navigator.clipboard.writeText(document.getElementById(id).innerText);
         const t = document.getElementById("toast"); t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2000);
     }
-        // Fungsi untuk menyimpan ke Riwayat Browser
-    function simpanKeRiwayat(tipe, user, host, exp, linkTls, linkNtls, linkGrpc) {
-        let riwayat = JSON.parse(localStorage.getItem('masd_riwayat')) || [];
-        const dataBaru = {
-            tanggal: new Date().toLocaleString('id-ID'),
-            layanan: tipe,
-            username: user,
-            host: host,
-            expired: exp,
-            tls: linkTls,
-            ntls: linkNtls,
-            grpc: linkGrpc
-        };
-        riwayat.unshift(dataBaru); // Masukkan ke urutan paling atas
-        localStorage.setItem('masd_riwayat', JSON.stringify(riwayat));
-    }
-        // Fungsi untuk Download File TXT
+
     function downloadTXT() {
         const u = document.getElementById('res-user').innerText;
         const h = document.getElementById('res-host').innerText;
@@ -429,7 +477,58 @@ function goBack() {
         anchor.download = `VLESS-${u}.txt`;
         anchor.href = window.URL.createObjectURL(blob);
         anchor.click();
-                                          }
+    }
+
+    // --- 9. FUNGSI TRIAL ---
+    async function prosesTrial() {
+        if (!order.serverId) return alert("Pilih server terlebih dahulu!");
+
+        const hariIni = new Date().toDateString();
+        if (localStorage.getItem('masd_trial_date') === hariIni) {
+            alert("Batas Trial Habis! Anda sudah membuat trial hari ini. Silakan coba lagi besok atau beli paket Premium.");
+            return; 
+        }
+
+        showScreen('screen-loading', 'Trial');
+        try {
+            const res = await fetch('/api/buat_trial_vless', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ serverId: order.serverId })});
+            const json = await res.json();
+            
+            if (json.status === 'sukses') {
+                localStorage.setItem('masd_trial_date', hariIni);
+                
+                const akun = json.akun;
+                const u = akun.username || akun.remarks || "trial-auto";
+                const h = akun.hostname || akun.host || akun.domain || "id.masdvpnstore.web.id";
+                const exp = "15 Menit";
+                const tlsLink = akun.vless || akun.vless_tls || (akun.link && akun.link.tls) || akun.linkTls || "Cek Manual";
+                const ntlsLink = akun.vless_ntls || (akun.link && akun.link.none) || akun.linkNoneTls || "Cek Manual";
+                const grpcLink = (akun.link && akun.link.grpc) || akun.linkGrpc || "Cek Manual";
+
+                document.getElementById('res-user').innerText = u;
+                document.getElementById('res-host').innerText = h;
+                document.getElementById('res-exp').innerText = exp;
+                document.getElementById('fmt-tls').innerText = tlsLink;
+                document.getElementById('fmt-ntls').innerText = ntlsLink;
+                document.getElementById('fmt-grpc').innerText = grpcLink;
+                
+                showScreen('screen-success', 'Detail Trial VLESS');
+
+                // INSERT DATABASE SUPABASE DENGAN 3 LINK SEKALIGUS
+                const orderIdTrial = `TRIAL-VLESS-${Date.now()}`;
+                await db.from('transaksi_pembelian').insert([{
+                    id_user: currentUserId, no_invoice: orderIdTrial, layanan: 'VLESS Trial', server: order.serverName, harga: 0, status: 'success', 
+                    username_vpn: u, password_vpn: u, host_vpn: h, expired_vpn: exp, link_tls: tlsLink, link_ntls: ntlsLink, link_grpc: grpcLink
+                }]);
+            } else { 
+                alert("Gagal: " + (json.alasan || "Server Sibuk")); 
+                goBack(); 
+            }
+        } catch (e) { 
+            alert("Error Koneksi"); 
+            goBack(); 
+        }
+    }
 </script>
 </body>
 </html>
