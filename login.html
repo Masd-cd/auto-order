@@ -160,8 +160,9 @@
         btnLogin.disabled = true;
 
         try {
-            const { data, error } = await db.auth.resetPasswordForEmail(email);
-
+            const { data, error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://buy.masdpremium.biz.id/update-password.html',
+});
             if (error) throw error;
             
             tampilkanNotif("Link reset password berhasil dikirim! Silakan cek kotak masuk (Inbox) atau folder Spam pada email Anda.", "success");
