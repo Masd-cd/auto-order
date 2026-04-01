@@ -226,11 +226,25 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentUserId = null; 
+    let currentUserEmail = "Pembeli";
     let order = { protocol: 'VLESS', serverId: '', serverName: '', duration: '', price: '' };
     let historyStack = ['screen-server'];
     let qrisTimerInterval = null;
 
-    // --- 2. SISTEM SATPAM CEK LOGIN ---
+    // --- 2. SISTEM NOTIFIKASI AMAN (VIA VERCEL) ---
+    async function kirimNotifTelegram(pesan) {
+        try {
+            await fetch('/api/kirim_notif', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pesan: pesan })
+            });
+        } catch (e) {
+            console.log("Gagal kirim notif ke Vercel");
+        }
+    }
+
+    // --- 3. SISTEM SATPAM CEK LOGIN ---
     async function cekAkses() {
         try {
             const { data, error } = await db.auth.getSession();
@@ -238,6 +252,7 @@
                 window.location.href = 'login.html';
             } else {
                 currentUserId = data.session.user.id;
+                currentUserEmail = data.session.user.email || "User Tidak Diketahui";
                 const overlay = document.getElementById('loading-overlay');
                 if(overlay) overlay.style.display = 'none';
                 showScreen('screen-server', 'Pilih Server');
@@ -251,7 +266,7 @@
     }
     cekAkses();
 
-    // --- 3. NAVIGASI LAYAR ---
+    // --- 4. NAVIGASI LAYAR ---
     function showScreen(screenId, title) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         const targetScreen = document.getElementById(screenId);
@@ -295,7 +310,7 @@
         }
     }
 
-    // --- 4. PEMILIHAN PESANAN ---
+    // --- 5. PEMILIHAN PESANAN ---
     function pilihServer(id, name) { order.serverId = id; order.serverName = name; historyStack.push('screen-type'); showScreen('screen-type', 'Tipe Layanan'); }
     function pilihTipe(tipe) { if(tipe === 'premium') { historyStack.push('screen-duration'); showScreen('screen-duration', 'Pilih Paket'); } }
     
@@ -305,7 +320,7 @@
         historyStack.push('screen-input'); showScreen('screen-input', 'Konfigurasi Akun');
     }
 
-    // --- 5. FUNGSI DATABASE & TIMER QRIS ---
+    // --- 6. FUNGSI DATABASE & TIMER QRIS ---
     async function updateStatusTransaksi(orderId, statusBaru) {
         try { await db.from('transaksi_pembelian').update({ status: statusBaru }).eq('no_invoice', orderId); } catch (e) { console.error(e); }
     }
@@ -331,7 +346,7 @@
         }, 1000);
     }
 
-    // --- 6. PENANGKAP LANJUT BAYAR DARI RIWAYAT ---
+    // --- 7. PENANGKAP LANJUT BAYAR DARI RIWAYAT ---
     function cekResumeQris() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('resume') === 'true') {
@@ -374,6 +389,15 @@
                             await db.from('transaksi_pembelian')
                                 .update({ status: 'success', username_vpn: resUser, password_vpn: resUser, host_vpn: resHost, expired_vpn: resExp, link_tls: tlsLink, link_ntls: ntlsLink, link_grpc: grpcLink })
                                 .eq('no_invoice', dataResume.invoice);
+                                
+                            // KIRIM NOTIFIKASI TELEGRAM
+                            const pesanPremium = `<b>🚀 PESANAN PREMIUM LUNAS!</b>\n\n` +
+                                                 `<b>Layanan:</b> VLESS Premium\n` +
+                                                 `<b>Harga:</b> Rp ${parseInt(dataResume.total_bayar).toLocaleString('id-ID')}\n` +
+                                                 `<b>Pembeli:</b> ${currentUserEmail}\n` +
+                                                 `<b>Username VPN:</b> ${resUser}\n\n` +
+                                                 `<i>Cek detail lengkap di Supabase.</i>`;
+                            kirimNotifTelegram(pesanPremium);
                         }
                     } catch (e) {}
                 }, 3000);
@@ -382,7 +406,7 @@
         } return false;
     }
 
-    // --- 7. PROSES UTAMA (CHECKOUT PAYDISINI) ---
+    // --- 8. PROSES UTAMA (CHECKOUT PAYDISINI) ---
     async function prosesCheckout() {
         const user = document.getElementById('input-user').value.trim();
         if (!user) return alert("Username wajib diisi!");
@@ -442,6 +466,16 @@
                             await db.from('transaksi_pembelian')
                                 .update({ status: 'success', username_vpn: resUser, password_vpn: resUser, host_vpn: resHost, expired_vpn: resExp, link_tls: tlsLink, link_ntls: ntlsLink, link_grpc: grpcLink })
                                 .eq('no_invoice', orderId);
+                                
+                            // KIRIM NOTIFIKASI TELEGRAM
+                            const pesanPremium = `<b>🚀 PESANAN PREMIUM LUNAS!</b>\n\n` +
+                                                 `<b>Layanan:</b> VLESS Premium\n` +
+                                                 `<b>Server:</b> ${order.serverName}\n` +
+                                                 `<b>Harga:</b> Rp ${parseInt(order.price).toLocaleString('id-ID')}\n` +
+                                                 `<b>Pembeli:</b> ${currentUserEmail}\n` +
+                                                 `<b>Username VPN:</b> ${resUser}\n\n` +
+                                                 `<i>Cek detail lengkap di Supabase.</i>`;
+                            kirimNotifTelegram(pesanPremium);
                         }
                     } catch (e) {}
                 }, 3000);
@@ -456,7 +490,7 @@
         }
     }
 
-    // --- 8. COPY & DOWNLOAD ---
+    // --- 9. COPY & DOWNLOAD ---
     function copyText(id) {
         navigator.clipboard.writeText(document.getElementById(id).innerText);
         const t = document.getElementById("toast"); t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2000);
@@ -479,7 +513,7 @@
         anchor.click();
     }
 
-    // --- 9. FUNGSI TRIAL ---
+    // --- 10. FUNGSI TRIAL ---
     async function prosesTrial() {
         if (!order.serverId) return alert("Pilih server terlebih dahulu!");
 
@@ -520,6 +554,15 @@
                     id_user: currentUserId, no_invoice: orderIdTrial, layanan: 'VLESS Trial', server: order.serverName, harga: 0, status: 'success', 
                     username_vpn: u, password_vpn: u, host_vpn: h, expired_vpn: exp, link_tls: tlsLink, link_ntls: ntlsLink, link_grpc: grpcLink
                 }]);
+                
+                // KIRIM NOTIFIKASI TELEGRAM
+                const pesanTrial = `<b>⏱️ TRIAL BARU DIBUAT!</b>\n\n` +
+                                   `<b>Layanan:</b> VLESS Trial\n` +
+                                   `<b>Server:</b> ${order.serverName}\n` +
+                                   `<b>Pencoba:</b> ${currentUserEmail}\n` +
+                                   `<b>Username VPN:</b> ${u}\n\n` +
+                                   `<i>User ini baru saja mencoba layanan gratis.</i>`;
+                kirimNotifTelegram(pesanTrial);
             } else { 
                 alert("Gagal: " + (json.alasan || "Server Sibuk")); 
                 goBack(); 
