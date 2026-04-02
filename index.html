@@ -24,7 +24,6 @@
         }
         ::-webkit-scrollbar { display: none; }
         
-        /* Layar Loading Sementara (Biar nggak kedip sblm ditendang) */
         #loading-overlay {
             position: fixed; inset: 0; background-color: #0f172a; z-index: 50;
             display: flex; align-items: center; justify-content: center; flex-direction: column;
@@ -105,37 +104,36 @@
     </div>
 
 <script>
-    // KUNCI RAHASIA SUPABASE MASD
+
     const SUPABASE_URL = 'https://smxmdqdbtcfsnefkstdc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteG1kcWRidGNmc25lZmtzdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MjQwMjQsImV4cCI6MjA5MDEwMDAyNH0.4hxe-CqEjBL6ymZ6QCFYppC6fsJWKx1r-aA3jQvSJz8';
     
-    // Inisialisasi Supabase
+
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // SISTEM SATPAM (Session Checker & Ambil Nama User)
+
     async function cekLoginStatus() {
         try {
             const { data: authData, error: authError } = await db.auth.getSession();
             
             if (authError || !authData.session) {
-                // Tendang ke login kalau gak ada sesi
+                
                 window.location.href = 'login.html';
-                return; // Stop eksekusi kode di bawahnya
+                return; 
             } 
             
-            // KTP Valid! Sekarang kita ambil namanya dari tabel profil_pengguna
+
             const userId = authData.session.user.id;
             const { data: profilData, error: profilError } = await db
                 .from('profil_pengguna')
                 .select('nama_lengkap')
                 .eq('id', userId)
-                .single(); // Ambil satu data saja
+                .single(); 
 
-            // Tampilkan halaman
             document.getElementById('loading-overlay').style.display = 'none';
             document.getElementById('main-content').classList.remove('hidden');
             
-            // Tampilkan Sapaan (Nama atau Email kalau namanya gagal diambil)
+            
             const sapaan = document.getElementById('teks-sapaan');
             if (profilData && profilData.nama_lengkap) {
                 sapaan.innerText = `Halo, ${profilData.nama_lengkap}!`;
@@ -150,10 +148,10 @@
         }
     }
 
-    // Jalankan Satpam otomatis pas web dibuka
+
     cekLoginStatus();
 
-    // SISTEM LOGOUT
+    
     async function prosesLogout() {
         if(confirm("Yakin ingin keluar dari akun?")) {
             await db.auth.signOut();
