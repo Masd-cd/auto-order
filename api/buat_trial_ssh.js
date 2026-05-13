@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
         let fetchOptions = {};
 
         if (serverId === 'SGDO') {
-            vpsUrl = 'http://167.172.73.230/vps/trialsshvpn'; // Pastikan URL Potato SSH Trial
+            vpsUrl = 'http://103.189.235.199/vps/trialsshvpn'; // Pastikan URL Potato SSH Trial
             fetchOptions = { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.POTATO_API_KEY}` }, body: JSON.stringify({ timelimit: "15m" }) };
         } else if (serverId === 'IDTECH') {
             vpsUrl = 'https://www.agung-store.my.id/api/trialssh'; // URL Agung SSH Trial
