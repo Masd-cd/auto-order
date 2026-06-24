@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Situs Sedang Pemeliharaan (Maintenance)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+            overflow: hidden;
+        }
+        /* Background decorative glow */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            top: 20%;
+            left: 30%;
+            z-index: -1;
+        }
+        body::after {
+            content: "";
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            bottom: 20%;
+            right: 25%;
+            z-index: -1;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+            padding: 40px 30px;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .icon-container {
+            margin-bottom: 28px;
+            display: inline-block;
+            position: relative;
+        }
+        .icon-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(56, 189, 248, 0.1);
+            border-radius: 50%;
+            animation: pulse-animation 2.5s infinite ease-in-out;
+        }
+        .icon-svg {
+            width: 56px;
+            height: 56px;
+            stroke: #38bdf8;
+            stroke-width: 1.75;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            position: relative;
+            z-index: 2;
+        }
+        @keyframes pulse-animation {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+        p {
+            font-size: 15px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #38bdf8;
+            margin-bottom: 24px;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #38bdf8;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        .line {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.08), transparent);
+            margin-bottom: 24px;
+        }
+        .footer-text {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="icon-container">
+            <div class="icon-bg"></div>
+            <!-- Wrench / Tool Icon -->
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 0-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 0 7.94-7.94l-3.76 3.76z"></path>
+            </svg>
+        </div>
+
+        <div>
+            <span class="status-badge">
+                <span class="status-dot"></span> Pemeliharaan Sistem
+            </span>
+        </div>
+
+        <h1>Kami Akan Segera Kembali</h1>
+        <p>Saat ini kami sedang melakukan peningkatan performa dan pembaruan sistem terjadwal guna memberikan pengalaman terbaik untuk Anda.</p>
+        
+        <div class="line"></div>
+        
+        <p class="footer-text">Terima kasih atas kesabaran dan pengertian Anda.</p>
+    </div>
+
+</body>
+</html>
