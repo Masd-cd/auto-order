@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pemeliharaan Sistem - MasD VPNStore</title>
-    <!-- Menambahkan favicon dari sumber asli Anda -->
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
     
@@ -19,6 +18,7 @@
             background-color: #0f172a;
             color: #f8fafc;
             display: flex;
+            flex-direction: column; /* Mengubah arah flex agar footer bisa di luar kotak */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -59,7 +59,7 @@
         .container {
             max-width: 480px;
             width: 100%;
-            padding: 40px 30px 30px;
+            padding: 40px 30px 40px; /* Padding disesuaikan karena footer di luar */
             background: rgba(30, 41, 59, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
@@ -70,9 +70,19 @@
             transform: translateY(30px);
             opacity: 0;
             animation: slideUpFade 0.8s ease-out 0.2s forwards;
+            margin-bottom: 24px; /* Jarak antara kotak dan footer */
         }
         @keyframes slideUpFade {
             to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* --- ANIMASI BERKEDIP --- */
+        .animate-blink {
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
         }
 
         /* --- STYLE KHUSUS BRANDING MASD VPNSTORE --- */
@@ -133,11 +143,12 @@
             height: 6px;
             background-color: #38bdf8;
             border-radius: 50%;
-            animation: blink 1.5s infinite;
         }
-        @keyframes blink {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
+        .tang-icon {
+            width: 32px;
+            height: 32px;
+            color: #38bdf8;
+            margin-bottom: 12px;
         }
         
         h2 {
@@ -150,7 +161,6 @@
             font-size: 14px;
             color: #94a3b8;
             line-height: 1.6;
-            margin-bottom: 28px;
         }
         .line {
             height: 1px;
@@ -158,29 +168,35 @@
             margin-bottom: 24px;
         }
         
-        /* Footer original style */
+        /* --- FOOTER DI LUAR KOTAK --- */
+        .footer-container {
+            text-align: center;
+            opacity: 0;
+            animation: slideUpFade 0.8s ease-out 0.4s forwards; /* Muncul sedikit lebih lambat dari kotak */
+        }
         .footer-main {
-            font-size: 9px;
-            color: #475569;
-            font-weight: 400;
+            font-size: 11px;
+            color: #475569; /* Warna abu-abu gelap yang redup (slate-600) */
+            font-weight: 400; /* Teks tidak tebal */
             letter-spacing: 0.025em;
             margin-bottom: 6px;
         }
         .footer-sub {
             font-size: 10px;
-            color: #64748b;
+            color: #334155; /* Lebih redup lagi (slate-700) */
         }
     </style>
 </head>
 <body>
 
+    <!-- KOTAK UTAMA -->
     <div class="container">
         
         <!-- BAGIAN BRANDING MASD VPNSTORE -->
         <div class="brand-header">
             <div class="brand-logo-box">
-                <!-- Logo Petir Original Anda -->
-                <svg class="brand-logo-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Logo Petir (Sekarang berkedip) -->
+                <svg class="brand-logo-svg animate-blink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                 </svg>
             </div>
@@ -190,25 +206,31 @@
 
         <div class="line"></div>
 
+        <!-- GAMBAR TANG (Sekarang berkedip) -->
+        <div>
+            <svg class="tang-icon animate-blink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 0-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 0 7.94-7.94l-3.76 3.76z"></path>
+            </svg>
+        </div>
+
         <!-- BAGIAN STATUS MAINTENANCE -->
         <div>
             <span class="status-badge">
-                <span class="status-dot"></span> Pemeliharaan Sistem
+                <span class="status-dot animate-blink"></span> 
+                <!-- Teks Pemeliharaan (Sekarang berkedip) -->
+                <span class="animate-blink">Pemeliharaan Sistem</span>
             </span>
         </div>
 
         <h2>Kami Akan Segera Kembali</h2>
         <p class="desc">Saat ini kami sedang melakukan peningkatan performa dan pembaruan sistem terjadwal guna memberikan pengalaman terbaik untuk Anda.</p>
         
-        <div class="line"></div>
-        
-        <!-- BAGIAN FOOTER ORIGINAL ANDA -->
-        <div class="mt-12 mb-8 text-center">
-            <p class="text-[9px] text-slate-600 tracking-wide">
-                &copy; Built by MasD VPNStore 2026.
-            </p>
-        </div>
-        
+    </div>
+
+    <!-- BAGIAN FOOTER DI LUAR KOTAK (Warna Redup/Samar) -->
+    <div class="footer-container">
+        <p class="footer-main">&copy; Built by MasD VPNStore 2026.</p>
+        <p class="footer-sub">Supported API by Agung Tunneling & Potato Tunneling.</p>
     </div>
 
 </body>
