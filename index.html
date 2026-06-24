@@ -21,7 +21,14 @@
             padding: 20px;
             text-align: center;
             overflow: hidden;
+            /* Animasi masuk untuk background */
+            opacity: 0;
+            animation: fadeInPage 0.5s ease-in forwards;
         }
+        @keyframes fadeInPage {
+            to { opacity: 1; }
+        }
+        
         /* Background decorative glow */
         body::before {
             content: "";
@@ -53,7 +60,16 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            
+            /* Animasi meluncur dari bawah untuk kontainer */
+            transform: translateY(30px);
+            opacity: 0;
+            animation: slideUpFade 0.8s ease-out 0.2s forwards;
         }
+        @keyframes slideUpFade {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         .icon-container {
             margin-bottom: 28px;
             display: inline-block;
